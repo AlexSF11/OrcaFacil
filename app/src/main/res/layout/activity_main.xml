@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg_home"
     android:gravity="center"
     android:orientation="horizontal"
     tools:context=".MainActivity">
@@ -12,6 +13,7 @@
         android:id="@+id/rv_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/main_item" />
+        tools:listitem="@layout/main_item"
+        tools:itemCount="5" />
 
 </LinearLayout>

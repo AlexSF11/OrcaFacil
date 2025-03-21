@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">OrcaFacil</string>
-    <string name="new_budget">Novo Orçamento</string>
+    <string name="app_name">OrçaFácil</string>
+    <string name="new_budget">Fazer Orçamento</string>
     <string name="my_budgets">Meus Orçamentos</string>
 
 </resources>
