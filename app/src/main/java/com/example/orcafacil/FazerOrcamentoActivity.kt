@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.pdf.PdfDocument
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.net.Uri
 import android.os.Bundle
@@ -20,6 +21,9 @@ import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class FazerOrcamentoActivity : AppCompatActivity() {
     private lateinit var etNome: EditText
@@ -41,7 +45,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         etEmail = findViewById(R.id.et_email)
         etCpfCnpj = findViewById(R.id.et_cpf_cnpj)
         etEndereco = findViewById(R.id.et_endereco)
-        //etRelatorio = findViewById(R.id.et_relatorio)
+
 
         val layoutTarefas = findViewById<LinearLayout>(R.id.layout_tarefas)
         val btnAdicionarTarefa = findViewById<Button>(R.id.btnAdicionarTarefa)
@@ -92,7 +96,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         val page = pdfDocument.startPage(pageInfo)
         val canvas: Canvas = page.canvas
 
-        // Adicionando o logotipo
         try {
             val bitmap = BitmapFactory.decodeResource(resources, R.drawable.drc_logo)
             val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 500, 100, false)
@@ -101,7 +104,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
             Log.e("DEBUG_PDF", "Erro ao carregar o logotipo: ${e.message}")
         }
 
-        // Título "ORÇAMENTO"
         paint.textSize = 22f
         paint.isFakeBoldText = true
         val textWidth = paint.measureText("ORÇAMENTO")
@@ -109,33 +111,57 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         val yTitle = 150f
         canvas.drawText("ORÇAMENTO", xTitle, yTitle, paint)
 
-        // Adicionando informações do cliente
         paint.textSize = 16f
         paint.isFakeBoldText = false
         val spacing = 30f
         var yText = yTitle + 50f
-        val lineStartX = 50f
-        val lineEndX = pageInfo.pageWidth - 50f
+        val tableLeftX = 45f
+        val tableRightX = pageInfo.pageWidth - 45f
 
-        fun drawLine() {
-            canvas.drawLine(lineStartX, yText + 10f, lineEndX, yText + 10f, paint)
+        fun drawRow(label: String, content: String, rightContent: String? = null) {
+            canvas.drawText("$label $content", tableLeftX + 5f, yText, paint)
+            rightContent?.let {
+                val textWidth = paint.measureText(it)
+                canvas.drawText(it, tableRightX - textWidth - 5f, yText, paint)
+            }
+            // Linhas laterais
+            canvas.drawLine(tableLeftX, yText - 20f, tableLeftX, yText + 10f, paint)
+            canvas.drawLine(tableRightX, yText - 20f, tableRightX, yText + 10f, paint)
+            // Linha inferior da linha atual
+            canvas.drawLine(tableLeftX, yText + 10f, tableRightX, yText + 10f, paint)
+            yText += spacing
         }
 
-        drawLine(); canvas.drawText("Nome: ${etNome.text}", 50f, yText, paint); yText += spacing
-        drawLine(); canvas.drawText("Celular: ${etCelular.text}", 50f, yText, paint); yText += spacing
-        drawLine(); canvas.drawText("Email: ${etEmail.text}", 50f, yText, paint); yText += spacing
-        drawLine(); canvas.drawText("CPF/CNPJ: ${etCpfCnpj.text}", 50f, yText, paint); yText += spacing
-        drawLine(); canvas.drawText("Endereço: ${etEndereco.text}", 50f, yText, paint); yText += spacing
-        //drawLine(); canvas.drawText("Relatório: ${etRelatorio.text}", 50f, yText, paint); yText += spacing
 
-        // Agora, adicionamos as tarefas LOGO APÓS as informações do cliente
-        canvas.drawText("Tarefas:", 50f, yText, paint)
-        yText += spacing
+        val dataAtual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+        val numeroOrcamento = "Nº245"
+        //val valorTotal = "R$ 3.900,00"
+
+        paint.isFakeBoldText = true
+        val xRightAlign = pageInfo.pageWidth - 50f  // Margem direita
+        val textWidthOrcamento = paint.measureText(numeroOrcamento)
+        val textWidthData = paint.measureText(dataAtual)
+
+//        Linha Superior que fecha a parte de cima da tabela
+        canvas.drawLine(tableLeftX, yText + -20f, tableRightX, yText + -20f, paint)
+
+        // Ajustando a posição
+        canvas.drawText(dataAtual, xRightAlign - textWidthData, 170f, paint)  // Data primeiro, mais acima
+
+        val yNome = yTitle + 50f  // Posição Y do "Nome"
+        paint.color = Color.RED
+        canvas.drawText(numeroOrcamento, xRightAlign - textWidthOrcamento, yNome, paint)
+        paint.color = Color.BLACK
+
+        drawRow("Nome:", etNome.text.toString(), "Nº245")
+        drawRow("Celular:", etCelular.text.toString())
+        drawRow("Email:", etEmail.text.toString())
+        drawRow("CPF/CNPJ:", etCpfCnpj.text.toString())
+        drawRow("Endereço:", etEndereco.text.toString())
+        drawRow("Tarefas:", "")
 
         for (tarefa in listaTarefas) {
-            val textoTarefa = "✔ ${tarefa.text.toString()}"
-            canvas.drawText(textoTarefa, 50f, yText, paint)
-            yText += spacing
+            drawRow("✔", tarefa.text.toString())
         }
 
         pdfDocument.finishPage(page)
@@ -152,6 +178,80 @@ class FazerOrcamentoActivity : AppCompatActivity() {
 
         pdfDocument.close()
     }
+
+
+
+
+
+
+//    private fun generatePDF(file: File) {
+//        Log.d("DEBUG_PDF", "Iniciando a geração do PDF...")
+//        val pdfDocument = PdfDocument()
+//        val paint = Paint()
+//        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+//        val page = pdfDocument.startPage(pageInfo)
+//        val canvas: Canvas = page.canvas
+//
+//        // Adicionando o logotipo
+//        try {
+//            val bitmap = BitmapFactory.decodeResource(resources, R.drawable.drc_logo)
+//            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 500, 100, false)
+//            canvas.drawBitmap(scaledBitmap, (pageInfo.pageWidth - 500) / 2f, 20f, paint)
+//        } catch (e: Exception) {
+//            Log.e("DEBUG_PDF", "Erro ao carregar o logotipo: ${e.message}")
+//        }
+//
+//        // Título "ORÇAMENTO"
+//        paint.textSize = 22f
+//        paint.isFakeBoldText = true
+//        val textWidth = paint.measureText("ORÇAMENTO")
+//        val xTitle = (pageInfo.pageWidth - textWidth) / 2
+//        val yTitle = 150f
+//        canvas.drawText("ORÇAMENTO", xTitle, yTitle, paint)
+//
+//        // Adicionando informações do cliente
+//        paint.textSize = 16f
+//        paint.isFakeBoldText = false
+//        val spacing = 30f
+//        var yText = yTitle + 50f
+//        val lineStartX = 50f
+//        val lineEndX = pageInfo.pageWidth - 50f
+//
+//        fun drawLine() {
+//            canvas.drawLine(lineStartX, yText + 10f, lineEndX, yText + 10f, paint)
+//        }
+//
+//        drawLine(); canvas.drawText("Nome: ${etNome.text}", 50f, yText, paint); yText += spacing
+//        drawLine(); canvas.drawText("Celular: ${etCelular.text}", 50f, yText, paint); yText += spacing
+//        drawLine(); canvas.drawText("Email: ${etEmail.text}", 50f, yText, paint); yText += spacing
+//        drawLine(); canvas.drawText("CPF/CNPJ: ${etCpfCnpj.text}", 50f, yText, paint); yText += spacing
+//        drawLine(); canvas.drawText("Endereço: ${etEndereco.text}", 50f, yText, paint); yText += spacing
+//
+//
+//        // Agora, adicionamos as tarefas LOGO APÓS as informações do cliente
+//        canvas.drawText("Tarefas:", 50f, yText, paint)
+//        yText += spacing
+//
+//        for (tarefa in listaTarefas) {
+//            val textoTarefa = "✔ ${tarefa.text.toString()}"
+//            canvas.drawText(textoTarefa, 50f, yText, paint)
+//            yText += spacing
+//        }
+//
+//        pdfDocument.finishPage(page)
+//
+//        try {
+//            val fos = FileOutputStream(file)
+//            pdfDocument.writeTo(fos)
+//            fos.close()
+//            Log.d("DEBUG_PDF", "PDF salvo com sucesso!")
+//        } catch (e: IOException) {
+//            Log.e("DEBUG_PDF", "Erro ao salvar o PDF: ${e.message}")
+//            e.printStackTrace()
+//        }
+//
+//        pdfDocument.close()
+//    }
 
 
     private fun openPDF(file: File) {
