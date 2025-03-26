@@ -11,44 +11,47 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Informações do Cliente"
+            android:textColor="#000"
+            android:textSize="25dp"
+            android:textStyle="bold" />
 
         <!-- Campos de entrada -->
         <EditText
-            android:id="@+id/et_nome"
+            android:id="@+id/et_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Nome" />
 
         <EditText
-            android:id="@+id/et_celular"
+            android:id="@+id/et_phone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Celular" />
+            android:hint="Telefone"
+            android:inputType="number" />
 
         <EditText
-            android:id="@+id/et_email"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Email" />
-
-        <EditText
-            android:id="@+id/et_cpf_cnpj"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="CPF/CNPJ" />
-
-        <EditText
-            android:id="@+id/et_endereco"
+            android:id="@+id/et_address"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Endereço" />
 
         <!-- Título Relatório Inicial -->
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Relatório inicial"
+            android:layout_gravity="center"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="10dp"
+            android:text="Orçamento"
+            android:textColor="#000"
+            android:textSize="25dp"
             android:textStyle="bold" />
+
         <LinearLayout
             android:id="@+id/layout_tarefas"
             android:layout_width="match_parent"
@@ -57,19 +60,46 @@
 
         <Button
             android:id="@+id/btnAdicionarTarefa"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Adicionar +" />
+            android:backgroundTint="#0d6efd"
+            android:text="Adicionar +"
+            android:textColor="@color/white" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Valor Total: "
+                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textStyle="bold" />
+            />
+
+            <EditText
+                android:id="@+id/et_valor_total"
+                android:layout_width="250dp"
+                android:inputType="number"
+                android:layout_height="wrap_content" />
+
+
+        </LinearLayout>
+
 
         <!-- Botão Salvar -->
         <Button
             android:id="@+id/btn_salvar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
+            android:backgroundTint="#198754"
             android:text="Salvar"
-            android:backgroundTint="@color/black"/>
-
+            android:textColor="@color/white" />
 
 
     </LinearLayout>
