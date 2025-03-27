@@ -14,8 +14,11 @@ import android.text.Editable
 import android.text.Html
 import android.text.InputFilter
 import android.text.InputType
+import android.text.Layout
 import android.text.Spannable
 import android.text.SpannableString
+import android.text.StaticLayout
+import android.text.TextPaint
 import android.text.TextWatcher
 import android.text.style.StyleSpan
 import android.util.Log
@@ -29,6 +32,7 @@ import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -86,18 +90,46 @@ class FazerOrcamentoActivity : AppCompatActivity() {
 
 
 
+        fun aplicarMascaraMonetaria(editText: EditText) {
+            editText.addTextChangedListener(object : TextWatcher {
+                private var isUpdating = false
 
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
-        // Criando o campo de valor do serviço
+                override fun afterTextChanged(editable: Editable?) {
+                    if (isUpdating || editable.isNullOrEmpty()) return
+
+                    isUpdating = true
+
+                    val str = editable.toString()
+                    val cleanString = str.replace(Regex("[^0-9]"), "") // Remove tudo que não for número
+
+                    if (cleanString.isNotEmpty()) {
+                        val parsed = cleanString.toDouble() / 100
+                        val formatted = NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(parsed)
+
+                        // Atualiza o texto mantendo a posição correta do cursor
+                        editText.setText(formatted)
+                        editText.setSelection(formatted.length)
+                    }
+
+                    isUpdating = false
+                }
+            })
+        }
+
+        // Criando o campo de valor com máscara aplicada
         val valorServico = EditText(this).apply {
             hint = "Valor"
-            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+            inputType = InputType.TYPE_CLASS_NUMBER
             layoutParams = LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f
             )
-
+            aplicarMascaraMonetaria(this) // Aplica a máscara ao campo
         }
+
 
 
 
@@ -128,7 +160,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         //layoutTarefas.addView(tarefaInicial) // Adiciona o campo ao layout
         listaTarefas.add(tarefaInicial) // Adiciona à lista de tarefas
 
-// Lista que armazena pares (Tarefa, Valor)
+        // Lista que armazena pares (Tarefa, Valor)
 
 
         btnAdicionarTarefa.setOnClickListener {
@@ -155,6 +187,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
                 layoutParams = LinearLayout.LayoutParams(
                     0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f
                 )
+                aplicarMascaraMonetaria(this) // Aplica a máscara ao campo
             }
 
 
@@ -201,15 +234,42 @@ class FazerOrcamentoActivity : AppCompatActivity() {
     private fun atualizarValorTotal() {
         var total = 0.0
 
+        val format = NumberFormat.getInstance(Locale("pt", "BR"))
 
         for ((_, valor) in listaTarefasValores) {
-            val valorTexto = valor.text.toString().replace(",", ".") // Substitui vírgula por ponto para evitar erro
-            total += valorTexto.toDoubleOrNull() ?: 0.0
+            val valorTexto = valor.text.toString()
+                .replace("R$", "") // Remove o símbolo da moeda
+                .trim()
+
+            try {
+                val numero = format.parse(valorTexto)?.toDouble() ?: 0.0
+                total += numero
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
-        // Atualiza o valor total corretamente
-        etValorTotal.setText("R$ %.2f".format(total)) // Alterado para setText() ao invés de hint
+        val moedaFormat = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        etValorTotal.setText(moedaFormat.format(total))
     }
+
+
+//    private fun atualizarValorTotal() {
+//        var total = 0.0
+//
+//        for ((_, valor) in listaTarefasValores) {
+//            val valorTexto = valor.text.toString()
+//                .replace(Regex("[^0-9,.]"), "") // Remove tudo que não é número, vírgula ou ponto
+//                .replace(".", "") // Remove o separador de milhar
+//                .replace(",", ".") // Substitui vírgula por ponto para evitar erro
+//
+//            total += valorTexto.toDoubleOrNull() ?: 0.0
+//        }
+//
+//        // Atualiza o valor total corretamente
+//        etValorTotal.setText("R$ %.2f".format(total))
+//    }
+
 
 
 
@@ -242,19 +302,66 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         var yText = yTitle + 50f
         val tableLeftX = 45f
         val tableRightX = pageInfo.pageWidth - 45f
+        val tableInner = pageInfo.pageWidth - 135f
 
         fun drawRow(label: String, content: String, rightContent: String? = null) {
-            canvas.drawText("$label $content", tableLeftX + 5f, yText, paint)
+
+            // Descrição
+            canvas.drawText("$label $content", tableLeftX + 5f, yText +2f, paint)
             rightContent?.let {
                 val textWidth = paint.measureText(it)
-                canvas.drawText(it, tableRightX - textWidth - 5f, yText, paint)
+                // Preço
+                canvas.drawText(it, tableLeftX + 420f, yText +2f, paint)
             }
+
             // Linhas laterais
             canvas.drawLine(tableLeftX, yText - 20f, tableLeftX, yText + 10f, paint)
             canvas.drawLine(tableRightX, yText - 20f, tableRightX, yText + 10f, paint)
+
             // Linha inferior da linha atual
             canvas.drawLine(tableLeftX, yText + 10f, tableRightX, yText + 10f, paint)
+
             yText += spacing
+        }
+
+
+        fun drawRowItems(label: String, content: String, rightContent: String? = null) {
+            val maxTextWidth = tableInner - tableLeftX - 10f // Limite da largura do texto
+
+            // Configuração para quebrar linha caso o texto seja grande
+            val textPaint = TextPaint().apply {
+                textSize = paint.textSize
+                typeface = paint.typeface
+                color = paint.color
+            }
+
+            val staticLayout = StaticLayout.Builder.obtain(label, 0, label.length, textPaint, maxTextWidth.toInt())
+                .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+                .setLineSpacing(5f, 1f)
+                .build()
+
+            // Obtém altura real do texto para evitar sobreposição
+            val rowHeight = staticLayout.height - 10f
+
+            // Desenha o texto na coluna "DESCRIÇÃO"
+            canvas.save()
+            canvas.translate(tableLeftX + 5f, yText - 20f)
+            staticLayout.draw(canvas)
+            canvas.restore()
+
+            // Desenha o valor na coluna "VALOR", garantindo alinhamento à direita
+            rightContent?.let {
+                val textWidth = paint.measureText(it)
+                canvas.drawText(it, tableLeftX + 420f, yText  - 6f, paint)
+            }
+
+            // Desenha as bordas das células
+            canvas.drawLine(tableLeftX, yText -20, tableLeftX, yText + rowHeight, paint)
+            canvas.drawLine(tableRightX, yText -20, tableRightX, yText + rowHeight, paint)
+            canvas.drawLine(tableInner, yText -20, tableInner, yText + rowHeight, paint)
+            canvas.drawLine(tableLeftX, yText + rowHeight - 10, tableRightX, yText + rowHeight - 10, paint)
+
+            yText += rowHeight + 10f // Ajusta altura para evitar sobreposição
         }
 
 
@@ -267,7 +374,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         val textWidthOrcamento = paint.measureText(numeroOrcamento)
         val textWidthData = paint.measureText(dataAtual)
 
-//        Linha Superior que fecha a parte de cima da tabela
+        // Linha Superior que fecha a parte de cima da tabela
         canvas.drawLine(tableLeftX, yText + -20f, tableRightX, yText + -20f, paint)
 
         // Ajustando a posição
@@ -284,24 +391,52 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         drawRow("TELEFONE: ", etPhone.text.toString())
         drawRow("COND.PGTO: ","50% no inicio da obra, 25% ao decorrer da obra e 25% no final.")
 
-        paint.textSize = 18f
-        drawRow("DESCRIÇÃO", "", "VALOR")
-
         paint.textSize = 16f
+        drawRow("DESCRIÇÃO", "", "PREÇO")
+
+        paint.textSize = 12f
 
 
         for ((tarefa, valor) in listaTarefasValores) {
-            drawRow(tarefa.text.toString(), "", valor.text.toString())
-            //canvas.drawText(tarefa.text.toString(), valor.text.toString())
+            drawRowItems(tarefa.text.toString(), "", valor.text.toString())
         }
         paint.isFakeBoldText = true
 
 
 
-        paint.textSize = 18f
+        paint.textSize = 12f
+
+        canvas.drawLine(tableInner, yText -20, tableInner, yText + 10f, paint)
+        paint.isFakeBoldText = true
         drawRow("VALOR TOTAL", "", etValorTotal.text.toString().ifEmpty { "0.00" })
         paint.isFakeBoldText = false
 
+        val startX = 50f
+
+        // Adicionando rodapé com a nova mensagem
+        val footerStartY = yText
+        paint.textAlign = Paint.Align.LEFT
+        paint.textSize = 9f
+        paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
+        canvas.drawText("**Estou ciente com referido orçamento e quanto aos ítens contido nele.qualquer serviço adicional será cobrado a parte.\n", startX, footerStartY, paint)
+
+
+        // Adicionando informações do cliente no rodapé
+        paint.textSize = 12f
+        paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+
+        // Linha de Assinatura
+        canvas.drawLine(50f, yText + 27f, tableRightX, yText + 27f, paint)
+        canvas.drawText("CLIENTE:", startX, footerStartY + 25f, paint)
+
+        // Linha de Assinatura
+        canvas.drawLine(50f, yText + 47f, tableRightX, yText + 47f, paint)
+        canvas.drawText("DRC:", startX, footerStartY + 45f, paint)
+
+        paint.color = Color.BLUE
+        canvas.drawText("Rua Queiroz, 15 - Mata Fria", startX, footerStartY + 65f, paint)
+        canvas.drawText("Telefone: 96218-7332", startX, footerStartY + 80f, paint)
+        canvas.drawText("E-mail: naufreire13@gmail.com", startX, footerStartY + 95f, paint)
 
 
         pdfDocument.finishPage(page)
