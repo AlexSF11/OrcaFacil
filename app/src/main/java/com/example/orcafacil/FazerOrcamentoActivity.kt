@@ -11,16 +11,12 @@ import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Environment
 import android.text.Editable
-import android.text.Html
 import android.text.InputFilter
 import android.text.InputType
 import android.text.Layout
-import android.text.Spannable
-import android.text.SpannableString
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextWatcher
-import android.text.style.StyleSpan
 import android.util.Log
 import android.view.ViewGroup
 import android.widget.Button
@@ -46,8 +42,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
     private lateinit var pdfFile: File
     private val listaTarefas = mutableListOf<EditText>()
     private val listaTarefasValores = mutableListOf<Pair<EditText, EditText>>()
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fazer_orcamento)
@@ -55,40 +49,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         etName = findViewById(R.id.et_name)
         etPhone = findViewById(R.id.et_phone)
         etAddress = findViewById(R.id.et_address)
-        etValorTotal = findViewById(R.id.et_valor_total)
-
-
-        etName.filters = arrayOf(InputFilter.AllCaps())
-        etAddress.filters = arrayOf(InputFilter.AllCaps())
-
-        //val valoresUnitarios = 150.75
-        //etValorTotal.hint = "Ex: R$ %2.f".format(valoresUnitarios)
-        //etValorTotal.hint = "100,00"
-
-
-        val layoutTarefas = findViewById<LinearLayout>(R.id.layout_tarefas)
-        val btnAdicionarTarefa = findViewById<Button>(R.id.btnAdicionarTarefa)
-
-        // Criando um layout horizontal para tarefa e valor
-        val tarefaLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
-
-        // Criando o campo de tarefa inicial
-        val tarefaInicial = EditText(this).apply {
-            hint = "Produto / Serviço"
-            layoutParams = LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 2f
-            )
-        }
-
-        tarefaInicial.filters = arrayOf(InputFilter.AllCaps())
-
-
 
         fun aplicarMascaraMonetaria(editText: EditText) {
             editText.addTextChangedListener(object : TextWatcher {
@@ -120,6 +80,37 @@ class FazerOrcamentoActivity : AppCompatActivity() {
             })
         }
 
+        etValorTotal = findViewById(R.id.et_valor_total)
+        aplicarMascaraMonetaria(etValorTotal)
+
+        // Campos em caixa alta
+        etName.filters = arrayOf(InputFilter.AllCaps())
+        etAddress.filters = arrayOf(InputFilter.AllCaps())
+
+        val layoutTarefas = findViewById<LinearLayout>(R.id.layout_tarefas)
+        val btnAdicionarTarefa = findViewById<Button>(R.id.btnAdicionarTarefa)
+
+        // Criando um layout horizontal para tarefa e valor
+        val tarefaLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        // Criando o campo de tarefa inicial
+        val tarefaInicial = EditText(this).apply {
+            hint = "Produto / Serviço"
+            layoutParams = LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 2f
+            )
+        }
+
+        tarefaInicial.filters = arrayOf(InputFilter.AllCaps())
+
+
+
         // Criando o campo de valor com máscara aplicada
         val valorServico = EditText(this).apply {
             hint = "Valor"
@@ -129,9 +120,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
             )
             aplicarMascaraMonetaria(this) // Aplica a máscara ao campo
         }
-
-
-
 
         listaTarefasValores.add(Pair(tarefaInicial, valorServico))
 
@@ -143,9 +131,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
-
-
-
         // Adicionando os dois campos ao layout horizontal
         tarefaLayout.addView(tarefaInicial)
         tarefaLayout.addView(valorServico)
@@ -156,12 +141,8 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         // Adiciona à lista de tarefas
         //listaTarefas.add(tarefaInicial)
 
-
         //layoutTarefas.addView(tarefaInicial) // Adiciona o campo ao layout
         listaTarefas.add(tarefaInicial) // Adiciona à lista de tarefas
-
-        // Lista que armazena pares (Tarefa, Valor)
-
 
         btnAdicionarTarefa.setOnClickListener {
             val novaTarefaLayout = LinearLayout(this).apply {
@@ -201,19 +182,12 @@ class FazerOrcamentoActivity : AppCompatActivity() {
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             })
 
-
             novaTarefaLayout.addView(novaTarefa)
             novaTarefaLayout.addView(novoValorServico)
             layoutTarefas.addView(novaTarefaLayout)
 
             listaTarefasValores.add(Pair(novaTarefa, novoValorServico))
-
-
         }
-
-
-
-
 
         btnSalvar = findViewById(R.id.btn_salvar)
         btnSalvar.setOnClickListener {
@@ -229,8 +203,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
             }
         }
     }
-
-
     private fun atualizarValorTotal() {
         var total = 0.0
 
@@ -252,26 +224,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         val moedaFormat = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
         etValorTotal.setText(moedaFormat.format(total))
     }
-
-
-//    private fun atualizarValorTotal() {
-//        var total = 0.0
-//
-//        for ((_, valor) in listaTarefasValores) {
-//            val valorTexto = valor.text.toString()
-//                .replace(Regex("[^0-9,.]"), "") // Remove tudo que não é número, vírgula ou ponto
-//                .replace(".", "") // Remove o separador de milhar
-//                .replace(",", ".") // Substitui vírgula por ponto para evitar erro
-//
-//            total += valorTexto.toDoubleOrNull() ?: 0.0
-//        }
-//
-//        // Atualiza o valor total corretamente
-//        etValorTotal.setText("R$ %.2f".format(total))
-//    }
-
-
-
 
     private fun generatePDF(file: File) {
         Log.d("DEBUG_PDF", "Iniciando a geração do PDF...")
@@ -324,7 +276,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
             yText += spacing
         }
 
-
         fun drawRowItems(label: String, content: String, rightContent: String? = null) {
             val maxTextWidth = tableInner - tableLeftX - 10f // Limite da largura do texto
 
@@ -364,10 +315,8 @@ class FazerOrcamentoActivity : AppCompatActivity() {
             yText += rowHeight + 10f // Ajusta altura para evitar sobreposição
         }
 
-
         val dataAtual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
         val numeroOrcamento = "Nº245"
-
 
         paint.isFakeBoldText = true
         val xRightAlign = pageInfo.pageWidth - 50f  // Margem direita
@@ -395,14 +344,10 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         drawRow("DESCRIÇÃO", "", "PREÇO")
 
         paint.textSize = 12f
-
-
         for ((tarefa, valor) in listaTarefasValores) {
             drawRowItems(tarefa.text.toString(), "", valor.text.toString())
         }
         paint.isFakeBoldText = true
-
-
 
         paint.textSize = 12f
 
@@ -420,7 +365,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
         canvas.drawText("**Estou ciente com referido orçamento e quanto aos ítens contido nele.qualquer serviço adicional será cobrado a parte.\n", startX, footerStartY, paint)
 
-
         // Adicionando informações do cliente no rodapé
         paint.textSize = 12f
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
@@ -437,7 +381,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         canvas.drawText("Rua Queiroz, 15 - Mata Fria", startX, footerStartY + 65f, paint)
         canvas.drawText("Telefone: 96218-7332", startX, footerStartY + 80f, paint)
         canvas.drawText("E-mail: naufreire13@gmail.com", startX, footerStartY + 95f, paint)
-
 
         pdfDocument.finishPage(page)
 
