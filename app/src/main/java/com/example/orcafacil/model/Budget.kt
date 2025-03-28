@@ -11,8 +11,8 @@ data class Budget(
     @ColumnInfo(name = "name") val name: String,
     @ColumnInfo(name = "phone") val phone: String,
     @ColumnInfo(name = "address") val address: String,
-    @ColumnInfo(name = "description") val description: String,
-    @ColumnInfo(name = "unitPrice") val unitPrice: Double,
+    @ColumnInfo(name = "description") val description: List<String>,
+    @ColumnInfo(name = "unitPrice") val unitPrice: List<Double>,
     @ColumnInfo(name = "totalPrice") val totalPrice: Double,
     @ColumnInfo(name = "createdDate") val createdDate: Date = Date(),
 )
