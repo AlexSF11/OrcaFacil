@@ -25,6 +25,8 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import com.example.orcafacil.model.App
+import com.example.orcafacil.model.Budget
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -192,6 +194,100 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         btnSalvar = findViewById(R.id.btn_salvar)
         btnSalvar.setOnClickListener {
             if (validarFormulario()) {
+
+                // Extrair a descrição completa das tarefas
+                var description = ""
+                for ((_, valor) in listaTarefasValores) {
+                    val tarefaTexto = valor.text.toString().trim()
+                    if (tarefaTexto.isNotEmpty()) {
+                        description += if (description.isEmpty()) tarefaTexto else ", $tarefaTexto"
+                    }
+                }
+
+                // Extrair o valor unitário total
+                var unitPrice = 0.0
+                val format = NumberFormat.getInstance(Locale("pt", "BR"))
+
+                for ((_, valor) in listaTarefasValores) {
+                    val valorTexto = valor.text.toString()
+                        .replace("R$", "") // Remove o símbolo da moeda
+                        .trim()
+
+                    try {
+                        val numero = format.parse(valorTexto)?.toDouble() ?: 0.0
+                        unitPrice += numero
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+                // Extrair o valor total
+                val totalPrice = try {
+                    format.parse(etValorTotal.text.toString().replace("R$", "").trim())?.toDouble() ?: 0.0
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    0.0
+                }
+
+                // Executar a inserção em uma thread separada
+                Thread {
+                    val app = application as App
+                    val dao = app.db.budgetDao()
+                    dao.insert(
+                        Budget(
+                            name = etName.text.toString(),
+                            address = etAddress.text.toString(),
+                            phone = etPhone.text.toString(),
+                            description = listaTarefasValores.joinToString(separator = ", ") { it.first.text.toString().trim() },
+                            unitPrice = unitPrice,
+                            totalPrice = totalPrice
+                        )
+                    )
+                }.start()
+
+
+//                val descriptions = mutableListOf<String>()
+//                val unitPrices = mutableListOf<Double>()
+//
+//                val format = NumberFormat.getInstance(Locale("pt", "BR"))
+//
+//                for ((tarefa, valor) in listaTarefasValores) {
+//                    val desc = tarefa.text.toString().trim()
+//                    val price = valor.text.toString().replace("R$", "").trim()
+//
+//                    if (desc.isNotEmpty()) descriptions.add(desc)
+//                    try {
+//                        unitPrices.add(format.parse(price)?.toDouble() ?: 0.0)
+//                    } catch (e: Exception) {
+//                        unitPrices.add(0.0)
+//                    }
+//                }
+//
+//                val totalPrice = try {
+//                    format.parse(etValorTotal.text.toString().replace("R$", "").trim())?.toDouble() ?: 0.0
+//                } catch (e: Exception) {
+//                    e.printStackTrace()
+//                    0.0
+//                }
+//
+//                // Executar inserção no banco em uma thread separada
+//                Thread {
+//                    val app = application as App
+//                    val dao = app.db.budgetDao()
+//                    dao.insert(
+//                        Budget(
+//                            name = etName.text.toString(),
+//                            address = etAddress.text.toString(),
+//                            phone = etPhone.text.toString(),
+//                            description = descriptions,
+//                            unitPrice = unitPrices,
+//                            totalPrice = totalPrice
+//                        )
+//                    )
+//                }.start()
+
+                Toast.makeText(this, "Orçamento salvo com sucesso!", Toast.LENGTH_LONG).show()
+
                 val timestamp = System.currentTimeMillis()
                 val filePath = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath + "/orcamento_$timestamp.pdf"
                 pdfFile = File(filePath)
