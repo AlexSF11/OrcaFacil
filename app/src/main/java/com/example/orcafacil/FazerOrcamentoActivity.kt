@@ -234,50 +234,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
                         )
                     )
                 }.start()
-
-                Toast.makeText(this, "Orçamento salvo com sucesso!", Toast.LENGTH_LONG).show()
-
-
-//                val descriptions = mutableListOf<String>()
-//                val unitPrices = mutableListOf<Double>()
-//
-//                val format = NumberFormat.getInstance(Locale("pt", "BR"))
-//
-//                for ((tarefa, valor) in listaTarefasValores) {
-//                    val desc = tarefa.text.toString().trim()
-//                    val price = valor.text.toString().replace("R$", "").trim()
-//
-//                    if (desc.isNotEmpty()) descriptions.add(desc)
-//                    try {
-//                        unitPrices.add(format.parse(price)?.toDouble() ?: 0.0)
-//                    } catch (e: Exception) {
-//                        unitPrices.add(0.0)
-//                    }
-//                }
-//
-//                val totalPrice = try {
-//                    format.parse(etValorTotal.text.toString().replace("R$", "").trim())?.toDouble() ?: 0.0
-//                } catch (e: Exception) {
-//                    e.printStackTrace()
-//                    0.0
-//                }
-//
-//                // Executar inserção no banco em uma thread separada
-//                Thread {
-//                    val app = application as App
-//                    val dao = app.db.budgetDao()
-//                    dao.insert(
-//                        Budget(
-//                            name = etName.text.toString(),
-//                            address = etAddress.text.toString(),
-//                            phone = etPhone.text.toString(),
-//                            description = descriptions,
-//                            unitPrice = unitPrices,
-//                            totalPrice = totalPrice
-//                        )
-//                    )
-//                }.start()
-
+                
                 Toast.makeText(this, "Orçamento salvo com sucesso!", Toast.LENGTH_LONG).show()
 
                 val timestamp = System.currentTimeMillis()

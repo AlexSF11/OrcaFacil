@@ -22,6 +22,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
+
+
 //        val testIntent = Intent(this, FazerOrcamentoActivity::class.java)
 //        startActivity(testIntent)
 
@@ -52,7 +55,8 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
                 2 -> {
-                    // Abrir outra activity
+                    val intent = Intent(this@MainActivity, MyBudgets::class.java)
+                    startActivity(intent)
                 }
             }
             Log.i("Teste", "clicou $id!!")
