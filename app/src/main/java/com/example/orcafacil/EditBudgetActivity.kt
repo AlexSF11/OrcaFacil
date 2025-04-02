@@ -1,11 +1,23 @@
 package com.example.orcafacil
 
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Typeface
+import android.graphics.pdf.PdfDocument
 import android.os.Bundle
 import android.os.Build
+import android.os.Environment
 import android.util.Log
 import android.text.Editable
 import android.text.InputFilter
 import android.text.InputType
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
 import android.text.TextWatcher
 import android.view.ViewGroup
 import android.widget.Button
@@ -15,9 +27,15 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import com.example.orcafacil.model.App
 import com.example.orcafacil.model.Budget
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import kotlin.concurrent.thread
 
@@ -158,16 +176,235 @@ class EditBudgetActivity : AppCompatActivity() {
 
             // Atualizar o orçamento no banco de dados
             thread {
-                val app = application as App
-                val dao = app.db.budgetDao()
-                dao.update(updatedBudget)
+                try {
+                    val app = application as App
+                    val dao = app.db.budgetDao()
+                    dao.update(updatedBudget)
 
-                runOnUiThread {
-                    Toast.makeText(this, "Orçamento atualizado com sucesso!", Toast.LENGTH_SHORT).show()
-                    setResult(RESULT_OK)
-                    finish()
+                    runOnUiThread {
+                        Toast.makeText(this, "Orçamento atualizado com sucesso!", Toast.LENGTH_SHORT).show()
+
+                        // Gerar e abrir o PDF após salvar
+                        try {
+                            val filePath = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath + "/Orcamento_${updatedBudget.id}.pdf"
+                            val pdfFile = File(filePath)
+                            Log.d("EditBudgetActivity", "Caminho do PDF: ${pdfFile.absolutePath}")
+                            generatePDF(pdfFile)
+                            Toast.makeText(this, "PDF gerado com sucesso!", Toast.LENGTH_LONG).show()
+                            openPDF(pdfFile)
+                        } catch (e: Exception) {
+                            Log.e("EditBudgetActivity", "Erro ao gerar ou abrir o PDF: ${e.message}", e)
+                            Toast.makeText(this, "Erro ao gerar/abrir o PDF: ${e.message}", Toast.LENGTH_LONG).show()
+                        }
+
+                        setResult(RESULT_OK)
+                        finish()
+                    }
+                } catch (e: Exception) {
+                    Log.e("EditBudgetActivity", "Erro ao salvar o orçamento: ${e.message}", e)
+                    runOnUiThread {
+                        Toast.makeText(this, "Erro ao salvar o orçamento: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
                 }
             }
+        }
+    }
+
+    private fun generatePDF(file: File) {
+        Log.d("DEBUG_PDF", "Iniciando a geração do PDF...")
+        val pdfDocument = PdfDocument()
+        val paint = Paint()
+        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+        val page = pdfDocument.startPage(pageInfo)
+        val canvas: Canvas = page.canvas
+
+        try {
+            // Tentar carregar e desenhar o logotipo
+            try {
+                val bitmap = BitmapFactory.decodeResource(resources, R.drawable.drc_logo)
+                if (bitmap == null) {
+                    Log.e("DEBUG_PDF", "Logotipo não encontrado: R.drawable.drc_logo")
+                } else {
+                    val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 500, 100, false)
+                    canvas.drawBitmap(scaledBitmap, (pageInfo.pageWidth - 500) / 2f, 20f, paint)
+                }
+            } catch (e: Exception) {
+                Log.e("DEBUG_PDF", "Erro ao carregar o logotipo: ${e.message}", e)
+            }
+
+            paint.textSize = 22f
+            paint.isFakeBoldText = true
+            val textWidth = paint.measureText("ORÇAMENTO")
+            val xTitle = (pageInfo.pageWidth - textWidth) / 2
+            val yTitle = 150f
+            canvas.drawText("ORÇAMENTO", xTitle, yTitle, paint)
+
+            paint.textSize = 16f
+            paint.isFakeBoldText = false
+            val spacing = 30f
+            var yText = yTitle + 50f
+            val tableLeftX = 45f
+            val tableRightX = pageInfo.pageWidth - 45f
+            val tableInner = pageInfo.pageWidth - 135f
+
+            fun drawRow(label: String, content: String, rightContent: String? = null) {
+                // Descrição
+                canvas.drawText("$label $content", tableLeftX + 5f, yText + 2f, paint)
+                rightContent?.let {
+                    // Preço
+                    canvas.drawText(it, tableLeftX + 420f, yText + 2f, paint)
+                }
+
+                // Linhas laterais
+                canvas.drawLine(tableLeftX, yText - 20f, tableLeftX, yText + 10f, paint)
+                canvas.drawLine(tableRightX, yText - 20f, tableRightX, yText + 10f, paint)
+
+                // Linha inferior da linha atual
+                canvas.drawLine(tableLeftX, yText + 10f, tableRightX, yText + 10f, paint)
+
+                yText += spacing
+            }
+
+            fun drawRowItems(label: String, content: String, rightContent: String? = null) {
+                val maxTextWidth = tableInner - tableLeftX - 10f // Limite da largura do texto
+
+                // Configuração para quebrar linha caso o texto seja grande
+                val textPaint = TextPaint().apply {
+                    textSize = paint.textSize
+                    typeface = paint.typeface
+                    color = paint.color
+                }
+
+                val staticLayout = StaticLayout.Builder.obtain(label, 0, label.length, textPaint, maxTextWidth.toInt())
+                    .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+                    .setLineSpacing(5f, 1f)
+                    .build()
+
+                // Obtém altura real do texto para evitar sobreposição
+                val rowHeight = staticLayout.height - 10f
+
+                // Desenha o texto na coluna "DESCRIÇÃO"
+                canvas.save()
+                canvas.translate(tableLeftX + 5f, yText - 20f)
+                staticLayout.draw(canvas)
+                canvas.restore()
+
+                // Desenha o valor na coluna "VALOR", garantindo alinhamento à direita
+                rightContent?.let {
+                    val textWidth = paint.measureText(it)
+                    canvas.drawText(it, tableLeftX + 420f, yText - 6f, paint)
+                }
+
+                // Desenha as bordas das células
+                canvas.drawLine(tableLeftX, yText - 20, tableLeftX, yText + rowHeight, paint)
+                canvas.drawLine(tableRightX, yText - 20, tableRightX, yText + rowHeight, paint)
+                canvas.drawLine(tableInner, yText - 20, tableInner, yText + rowHeight, paint)
+                canvas.drawLine(tableLeftX, yText + rowHeight - 10, tableRightX, yText + rowHeight - 10, paint)
+
+                yText += rowHeight + 10f // Ajusta altura para evitar sobreposição
+            }
+
+            val dataAtual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+            val numeroOrcamento = "Nº245"
+
+            paint.isFakeBoldText = true
+            val xRightAlign = pageInfo.pageWidth - 50f  // Margem direita
+            val textWidthOrcamento = paint.measureText(numeroOrcamento)
+            val textWidthData = paint.measureText(dataAtual)
+
+            // Linha Superior que fecha a parte de cima da tabela
+            canvas.drawLine(tableLeftX, yText + -20f, tableRightX, yText + -20f, paint)
+
+            // Ajustando a posição
+            canvas.drawText(dataAtual, xRightAlign - textWidthData, 170f, paint)  // Data primeiro, mais acima
+
+            val yNome = yTitle + 50f  // Posição Y do "Nome"
+            paint.color = Color.RED
+            canvas.drawText(numeroOrcamento, xRightAlign - textWidthOrcamento, yNome, paint)
+            paint.color = Color.BLACK
+
+            paint.textSize = 14f
+            drawRow("CLIENTE: ", etName.text.toString())
+            drawRow("ENDEREÇO: ", etAddress.text.toString())
+            drawRow("TELEFONE: ", etPhone.text.toString())
+            drawRow("COND.PGTO: ", "50% no inicio da obra, 25% ao decorrer da obra e 25% no final.")
+
+            paint.textSize = 16f
+            drawRow("DESCRIÇÃO", "", "PREÇO")
+
+            paint.textSize = 12f
+            // Iterar sobre as listas de EditText para obter os valores
+            for (i in descriptionEditTexts.indices) {
+                val description = descriptionEditTexts[i].text.toString()
+                val unitPrice = unitPriceEditTexts[i].text.toString()
+                drawRowItems(description, "", unitPrice)
+            }
+            paint.isFakeBoldText = true
+
+            paint.textSize = 12f
+
+            canvas.drawLine(tableInner, yText - 20, tableInner, yText + 10f, paint)
+            paint.isFakeBoldText = true
+            drawRow("VALOR TOTAL", "", etTotalPrice.text.toString().ifEmpty { "0.00" })
+            paint.isFakeBoldText = false
+
+            val startX = 50f
+
+            // Adicionando rodapé com a nova mensagem
+            val footerStartY = yText
+            paint.textAlign = Paint.Align.LEFT
+            paint.textSize = 9f
+            paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
+            canvas.drawText("**Estou ciente com referido orçamento e quanto aos ítens contido nele.qualquer serviço adicional será cobrado a parte.\n", startX, footerStartY, paint)
+
+            // Adicionando informações do cliente no rodapé
+            paint.textSize = 12f
+            paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+
+            // Linha de Assinatura
+            canvas.drawLine(50f, yText + 27f, tableRightX, yText + 27f, paint)
+            canvas.drawText("CLIENTE:", startX, footerStartY + 25f, paint)
+
+            // Linha de Assinatura
+            canvas.drawLine(50f, yText + 47f, tableRightX, yText + 47f, paint)
+            canvas.drawText("DRC:", startX, footerStartY + 45f, paint)
+
+            paint.color = Color.BLUE
+            canvas.drawText("Rua Queiroz, 15 - Mata Fria", startX, footerStartY + 65f, paint)
+            canvas.drawText("Telefone: 96218-7332", startX, footerStartY + 80f, paint)
+            canvas.drawText("E-mail: naufreire13@gmail.com", startX, footerStartY + 95f, paint)
+
+            pdfDocument.finishPage(page)
+
+            // Salvar o PDF
+            try {
+                val fos = FileOutputStream(file)
+                pdfDocument.writeTo(fos)
+                fos.close()
+                Log.d("DEBUG_PDF", "PDF salvo com sucesso em: ${file.absolutePath}")
+            } catch (e: IOException) {
+                Log.e("DEBUG_PDF", "Erro ao salvar o PDF: ${e.message}", e)
+                throw e // Propaga o erro para ser capturado no bloco externo
+            }
+        } catch (e: Exception) {
+            Log.e("DEBUG_PDF", "Erro ao gerar o PDF: ${e.message}", e)
+            throw e // Propaga o erro para ser capturado no bloco externo
+        } finally {
+            pdfDocument.close()
+        }
+    }
+
+    private fun openPDF(file: File) {
+        val uri = FileProvider.getUriForFile(this, "${packageName}.provider", file)
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.setDataAndType(uri, "application/pdf")
+        intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+
+        val chooser = Intent.createChooser(intent, "Abrir PDF com")
+        try {
+            startActivity(chooser)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Nenhum aplicativo encontrado para abrir PDF", Toast.LENGTH_LONG).show()
         }
     }
 
