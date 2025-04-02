@@ -1,5 +1,7 @@
 package com.example.orcafacil
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -17,6 +19,7 @@ class MyBudgets : AppCompatActivity() {
     private lateinit var rvBudgets: RecyclerView
     private lateinit var tvEmpty: TextView
     private lateinit var budgetAdapter: BudgetAdapter
+    private lateinit var budgetsLiveData: LiveData<List<Budget>>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +38,7 @@ class MyBudgets : AppCompatActivity() {
     private fun fetchAllBudgets() {
         val app = application as App
         val dao = app.db.budgetDao()
-        val budgetsLiveData: LiveData<List<Budget>> = dao.getAllBudgets()
+        budgetsLiveData = dao.getAllBudgets()
 
         budgetsLiveData.observe(this) { budgets ->
             Log.i("MyBudgets", "Budgets received: $budgets")
@@ -51,6 +54,14 @@ class MyBudgets : AppCompatActivity() {
                 tvEmpty.visibility = View.GONE
                 rvBudgets.visibility = View.VISIBLE
             }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == BudgetAdapter.EDIT_BUDGET_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            // Recarregar os dados do banco de dados após a edição
+            fetchAllBudgets()
         }
     }
 }
