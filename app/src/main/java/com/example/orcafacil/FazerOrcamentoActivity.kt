@@ -34,6 +34,7 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.core.content.ContextCompat
 
 class FazerOrcamentoActivity : AppCompatActivity() {
     private lateinit var etName: EditText
@@ -44,6 +45,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
     private lateinit var pdfFile: File
     private val listaTarefas = mutableListOf<EditText>()
     private val listaTarefasValores = mutableListOf<Pair<EditText, EditText>>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fazer_orcamento)
@@ -92,61 +94,8 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         val layoutTarefas = findViewById<LinearLayout>(R.id.layout_tarefas)
         val btnAdicionarTarefa = findViewById<Button>(R.id.btnAdicionarTarefa)
 
-        // Criando um layout horizontal para tarefa e valor
-        val tarefaLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
-
-        // Criando o campo de tarefa inicial
-        val tarefaInicial = EditText(this).apply {
-            hint = "Produto / Serviço"
-            layoutParams = LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 2f
-            )
-        }
-
-        tarefaInicial.filters = arrayOf(InputFilter.AllCaps())
-
-
-
-        // Criando o campo de valor com máscara aplicada
-        val valorServico = EditText(this).apply {
-            hint = "Valor"
-            inputType = InputType.TYPE_CLASS_NUMBER
-            layoutParams = LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f
-            )
-            aplicarMascaraMonetaria(this) // Aplica a máscara ao campo
-        }
-
-        listaTarefasValores.add(Pair(tarefaInicial, valorServico))
-
-        valorServico.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                atualizarValorTotal()
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        // Adicionando os dois campos ao layout horizontal
-        tarefaLayout.addView(tarefaInicial)
-        tarefaLayout.addView(valorServico)
-
-        // Adicionando o layout ao layout principal
-        layoutTarefas.addView(tarefaLayout)
-
-        // Adiciona à lista de tarefas
-        //listaTarefas.add(tarefaInicial)
-
-        //layoutTarefas.addView(tarefaInicial) // Adiciona o campo ao layout
-        listaTarefas.add(tarefaInicial) // Adiciona à lista de tarefas
-
-        btnAdicionarTarefa.setOnClickListener {
+        // Função para criar uma nova linha com campos e botão de remoção
+        fun criarNovaLinha(): Pair<LinearLayout, Pair<EditText, EditText>> {
             val novaTarefaLayout = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 layoutParams = LinearLayout.LayoutParams(
@@ -170,25 +119,55 @@ class FazerOrcamentoActivity : AppCompatActivity() {
                 layoutParams = LinearLayout.LayoutParams(
                     0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f
                 )
-                aplicarMascaraMonetaria(this) // Aplica a máscara ao campo
+                aplicarMascaraMonetaria(this)
             }
 
-
-            // 🔹 Adiciona o listener para atualizar o valor total ao digitar
+            // Adiciona listener para atualizar o valor total
             novoValorServico.addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
-                    atualizarValorTotal() // Chama a função para recalcular a soma
+                    atualizarValorTotal()
                 }
 
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             })
 
+            // Botão de remoção pequeno
+            val btnRemover = Button(this).apply {
+                text = "X"
+                layoutParams = LinearLayout.LayoutParams(
+                    80, // Largura fixa pequena (ajuste se necessário)
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                // Corrige o erro usando setBackgroundTintList
+                setBackgroundTintList(ContextCompat.getColorStateList(this@FazerOrcamentoActivity, android.R.color.darker_gray))
+                setOnClickListener {
+                    val parentLayout = novaTarefaLayout.parent as LinearLayout
+                    val index = parentLayout.indexOfChild(novaTarefaLayout)
+                    parentLayout.removeView(novaTarefaLayout) // Remove o layout da linha
+                    listaTarefasValores.removeAt(index) // Remove o par da lista
+                    atualizarValorTotal() // Atualiza o valor total
+                }
+            }
+
+            // Adiciona os elementos ao layout horizontal
             novaTarefaLayout.addView(novaTarefa)
             novaTarefaLayout.addView(novoValorServico)
-            layoutTarefas.addView(novaTarefaLayout)
+            novaTarefaLayout.addView(btnRemover)
 
-            listaTarefasValores.add(Pair(novaTarefa, novoValorServico))
+            return Pair(novaTarefaLayout, Pair(novaTarefa, novoValorServico))
+        }
+
+        // Criar a primeira linha
+        val (primeiraTarefaLayout, primeiraTarefaPair) = criarNovaLinha()
+        layoutTarefas.addView(primeiraTarefaLayout)
+        listaTarefasValores.add(primeiraTarefaPair)
+
+        // Atualizar o botão "Adicionar +" para usar a função criarNovaLinha
+        btnAdicionarTarefa.setOnClickListener {
+            val (novaTarefaLayout, novaTarefaPair) = criarNovaLinha()
+            layoutTarefas.addView(novaTarefaLayout)
+            listaTarefasValores.add(novaTarefaPair)
         }
 
         btnSalvar = findViewById(R.id.btn_salvar)
@@ -234,7 +213,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
                         )
                     )
                 }.start()
-                
+
                 Toast.makeText(this, "Orçamento salvo com sucesso!", Toast.LENGTH_LONG).show()
 
                 val timestamp = System.currentTimeMillis()
@@ -248,6 +227,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
             }
         }
     }
+
     private fun atualizarValorTotal() {
         var total = 0.0
 
@@ -302,13 +282,12 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         val tableInner = pageInfo.pageWidth - 135f
 
         fun drawRow(label: String, content: String, rightContent: String? = null) {
-
             // Descrição
-            canvas.drawText("$label $content", tableLeftX + 5f, yText +2f, paint)
+            canvas.drawText("$label $content", tableLeftX + 5f, yText + 2f, paint)
             rightContent?.let {
                 val textWidth = paint.measureText(it)
                 // Preço
-                canvas.drawText(it, tableLeftX + 420f, yText +2f, paint)
+                canvas.drawText(it, tableLeftX + 420f, yText + 2f, paint)
             }
 
             // Linhas laterais
@@ -348,13 +327,13 @@ class FazerOrcamentoActivity : AppCompatActivity() {
             // Desenha o valor na coluna "VALOR", garantindo alinhamento à direita
             rightContent?.let {
                 val textWidth = paint.measureText(it)
-                canvas.drawText(it, tableLeftX + 420f, yText  - 6f, paint)
+                canvas.drawText(it, tableLeftX + 420f, yText - 6f, paint)
             }
 
             // Desenha as bordas das células
-            canvas.drawLine(tableLeftX, yText -20, tableLeftX, yText + rowHeight, paint)
-            canvas.drawLine(tableRightX, yText -20, tableRightX, yText + rowHeight, paint)
-            canvas.drawLine(tableInner, yText -20, tableInner, yText + rowHeight, paint)
+            canvas.drawLine(tableLeftX, yText - 20, tableLeftX, yText + rowHeight, paint)
+            canvas.drawLine(tableRightX, yText - 20, tableRightX, yText + rowHeight, paint)
+            canvas.drawLine(tableInner, yText - 20, tableInner, yText + rowHeight, paint)
             canvas.drawLine(tableLeftX, yText + rowHeight - 10, tableRightX, yText + rowHeight - 10, paint)
 
             yText += rowHeight + 10f // Ajusta altura para evitar sobreposição
@@ -383,7 +362,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         drawRow("CLIENTE: ", etName.text.toString())
         drawRow("ENDEREÇO: ", etAddress.text.toString())
         drawRow("TELEFONE: ", etPhone.text.toString())
-        drawRow("COND.PGTO: ","50% no inicio da obra, 25% ao decorrer da obra e 25% no final.")
+        drawRow("COND.PGTO: ", "50% no inicio da obra, 25% ao decorrer da obra e 25% no final.")
 
         paint.textSize = 16f
         drawRow("DESCRIÇÃO", "", "PREÇO")
@@ -396,7 +375,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
 
         paint.textSize = 12f
 
-        canvas.drawLine(tableInner, yText -20, tableInner, yText + 10f, paint)
+        canvas.drawLine(tableInner, yText - 20, tableInner, yText + 10f, paint)
         paint.isFakeBoldText = true
         drawRow("VALOR TOTAL", "", etValorTotal.text.toString().ifEmpty { "0.00" })
         paint.isFakeBoldText = false
@@ -441,13 +420,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
 
         pdfDocument.close()
     }
-
-
-
-
-
-
-
 
     private fun openPDF(file: File) {
         val uri = FileProvider.getUriForFile(this, "${packageName}.provider", file)
