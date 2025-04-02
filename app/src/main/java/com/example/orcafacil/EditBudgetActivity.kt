@@ -21,8 +21,7 @@ class EditBudgetActivity : AppCompatActivity() {
     private lateinit var etName: EditText
     private lateinit var etPhone: EditText
     private lateinit var etAddress: EditText
-    private lateinit var llDescriptionContainer: LinearLayout
-    private lateinit var llUnitPriceContainer: LinearLayout
+    private lateinit var llItemsContainer: LinearLayout
     private lateinit var etTotalPrice: EditText
     private lateinit var btnSave: Button
     private lateinit var btnAddDescription: Button
@@ -39,8 +38,7 @@ class EditBudgetActivity : AppCompatActivity() {
         etName = findViewById(R.id.etName)
         etPhone = findViewById(R.id.etPhone)
         etAddress = findViewById(R.id.etAddress)
-        llDescriptionContainer = findViewById(R.id.llDescriptionContainer)
-        llUnitPriceContainer = findViewById(R.id.llUnitPriceContainer)
+        llItemsContainer = findViewById(R.id.llItemsContainer)
         etTotalPrice = findViewById(R.id.etTotalPrice)
         btnSave = findViewById(R.id.btnSave)
         btnAddDescription = findViewById(R.id.btnAddDescription)
@@ -68,12 +66,14 @@ class EditBudgetActivity : AppCompatActivity() {
         etAddress.setText(budget.address)
         etTotalPrice.setText(budget.totalPrice.toString())
 
-        // Adicionar EditText dinamicamente para a descrição
-        budget.description.forEach { description ->
-            addDescriptionAndUnitPriceFields(description, budget.unitPrice.getOrNull(budget.description.indexOf(description))?.toString() ?: "")
+        // Adicionar itens dinamicamente
+        for (i in budget.description.indices) {
+            val description = budget.description.getOrNull(i) ?: ""
+            val unitPrice = budget.unitPrice.getOrNull(i)?.toString() ?: ""
+            addDescriptionAndUnitPriceFields(description, unitPrice)
         }
 
-        // Configurar o botão de adicionar (agora único)
+        // Configurar o botão de adicionar
         btnAddDescription.setOnClickListener {
             addDescriptionAndUnitPriceFields("", "")
         }
@@ -162,10 +162,9 @@ class EditBudgetActivity : AppCompatActivity() {
         }
     }
 
-    // Função para adicionar campos de descrição e preço unitário com botão de remoção
+    // Função para adicionar campos de descrição e preço unitário em uma única linha horizontal
     private fun addDescriptionAndUnitPriceFields(initialDescription: String, initialUnitPrice: String) {
-        // Container para a descrição
-        val descriptionContainer = LinearLayout(this).apply {
+        val container = LinearLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -174,11 +173,12 @@ class EditBudgetActivity : AppCompatActivity() {
             setPadding(0, 8, 0, 8)
         }
 
+        // Campo de descrição
         val descriptionEditText = EditText(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 0,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
-                1f
+                2f // Proporção maior para descrição
             )
             setText(initialDescription)
             background = resources.getDrawable(android.R.drawable.edit_text, null)
@@ -186,41 +186,12 @@ class EditBudgetActivity : AppCompatActivity() {
             hint = "Digite a descrição"
         }
 
-        val descriptionRemoveButton = Button(this).apply {
-            text = "X"
-            layoutParams = LinearLayout.LayoutParams(
-                80, // Largura fixa pequena (ajuste se necessário)
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(8, 0, 0, 0)
-            }
-            setBackgroundTintList(ContextCompat.getColorStateList(this@EditBudgetActivity, android.R.color.darker_gray))
-            setOnClickListener {
-                llDescriptionContainer.removeView(descriptionContainer)
-                descriptionEditTexts.remove(descriptionEditText)
-            }
-        }
-
-        descriptionContainer.addView(descriptionEditText)
-        descriptionContainer.addView(descriptionRemoveButton)
-        descriptionEditTexts.add(descriptionEditText)
-        llDescriptionContainer.addView(descriptionContainer)
-
-        // Container para o preço unitário
-        val unitPriceContainer = LinearLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 8, 0, 8)
-        }
-
+        // Campo de preço unitário
         val unitPriceEditText = EditText(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 0,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
-                1f
+                1f // Proporção menor para valor
             )
             setText(initialUnitPrice)
             background = resources.getDrawable(android.R.drawable.edit_text, null)
@@ -229,24 +200,30 @@ class EditBudgetActivity : AppCompatActivity() {
             hint = "Digite o preço"
         }
 
-        val unitPriceRemoveButton = Button(this).apply {
+        // Botão de remoção
+        val removeButton = Button(this).apply {
             text = "X"
             layoutParams = LinearLayout.LayoutParams(
-                80, // Largura fixa pequena (ajuste se necessário)
+                80, // Largura fixa pequena
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
                 setMargins(8, 0, 0, 0)
             }
             setBackgroundTintList(ContextCompat.getColorStateList(this@EditBudgetActivity, android.R.color.darker_gray))
             setOnClickListener {
-                llUnitPriceContainer.removeView(unitPriceContainer)
-                unitPriceEditTexts.remove(unitPriceEditText)
+                llItemsContainer.removeView(container)
+                val index = llItemsContainer.indexOfChild(container)
+                descriptionEditTexts.removeAt(index)
+                unitPriceEditTexts.removeAt(index)
             }
         }
 
-        unitPriceContainer.addView(unitPriceEditText)
-        unitPriceContainer.addView(unitPriceRemoveButton)
+        // Adicionar os elementos ao contêiner horizontal
+        container.addView(descriptionEditText)
+        container.addView(unitPriceEditText)
+        container.addView(removeButton)
+        descriptionEditTexts.add(descriptionEditText)
         unitPriceEditTexts.add(unitPriceEditText)
-        llUnitPriceContainer.addView(unitPriceContainer)
+        llItemsContainer.addView(container)
     }
 }
