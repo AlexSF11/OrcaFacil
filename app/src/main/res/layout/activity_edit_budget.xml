@@ -142,17 +142,6 @@
             app:layout_constraintTop_toBottomOf="@id/llDescriptionContainer"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <Button
-            android:id="@+id/btnAddUnitPrice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Adicionar Item"
-            android:textSize="14sp"
-            android:backgroundTint="#4CAF50"
-            android:textColor="#FFFFFF"
-            app:layout_constraintTop_toTopOf="@id/tvUnitPriceLabel"
-            app:layout_constraintEnd_toEndOf="parent" />
-
         <LinearLayout
             android:id="@+id/llUnitPriceContainer"
             android:layout_width="0dp"

@@ -11,6 +11,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.orcafacil.model.App
 import com.example.orcafacil.model.Budget
 import kotlin.concurrent.thread
@@ -25,7 +26,6 @@ class EditBudgetActivity : AppCompatActivity() {
     private lateinit var etTotalPrice: EditText
     private lateinit var btnSave: Button
     private lateinit var btnAddDescription: Button
-    private lateinit var btnAddUnitPrice: Button
 
     private val descriptionEditTexts = mutableListOf<EditText>()
     private val unitPriceEditTexts = mutableListOf<EditText>()
@@ -44,7 +44,6 @@ class EditBudgetActivity : AppCompatActivity() {
         etTotalPrice = findViewById(R.id.etTotalPrice)
         btnSave = findViewById(R.id.btnSave)
         btnAddDescription = findViewById(R.id.btnAddDescription)
-        btnAddUnitPrice = findViewById(R.id.btnAddUnitPrice)
 
         // Receber o objeto Budget do Intent
         val budget: Budget? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -71,21 +70,12 @@ class EditBudgetActivity : AppCompatActivity() {
 
         // Adicionar EditText dinamicamente para a descrição
         budget.description.forEach { description ->
-            addDescriptionField(description)
+            addDescriptionAndUnitPriceFields(description, budget.unitPrice.getOrNull(budget.description.indexOf(description))?.toString() ?: "")
         }
 
-        // Adicionar EditText dinamicamente para o preço unitário
-        budget.unitPrice.forEach { price ->
-            addUnitPriceField(price.toString())
-        }
-
-        // Configurar os botões de adicionar
+        // Configurar o botão de adicionar (agora único)
         btnAddDescription.setOnClickListener {
-            addDescriptionField("")
-        }
-
-        btnAddUnitPrice.setOnClickListener {
-            addUnitPriceField("")
+            addDescriptionAndUnitPriceFields("", "")
         }
 
         // Configurar o botão de salvar
@@ -172,9 +162,10 @@ class EditBudgetActivity : AppCompatActivity() {
         }
     }
 
-    // Função para adicionar um campo de descrição
-    private fun addDescriptionField(initialValue: String) {
-        val container = LinearLayout(this).apply {
+    // Função para adicionar campos de descrição e preço unitário com botão de remoção
+    private fun addDescriptionAndUnitPriceFields(initialDescription: String, initialUnitPrice: String) {
+        // Container para a descrição
+        val descriptionContainer = LinearLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -183,43 +174,40 @@ class EditBudgetActivity : AppCompatActivity() {
             setPadding(0, 8, 0, 8)
         }
 
-        val editText = EditText(this).apply {
+        val descriptionEditText = EditText(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 0,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 1f
             )
-            setText(initialValue)
+            setText(initialDescription)
             background = resources.getDrawable(android.R.drawable.edit_text, null)
             setPadding(12, 12, 12, 12)
             hint = "Digite a descrição"
         }
 
-        val removeButton = Button(this).apply {
+        val descriptionRemoveButton = Button(this).apply {
+            text = "X"
             layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
+                80, // Largura fixa pequena (ajuste se necessário)
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
                 setMargins(8, 0, 0, 0)
             }
-            text = "X"
-            backgroundTintList = resources.getColorStateList(android.R.color.holo_red_light, null)
-            setTextColor(resources.getColor(android.R.color.white, null))
+            setBackgroundTintList(ContextCompat.getColorStateList(this@EditBudgetActivity, android.R.color.darker_gray))
             setOnClickListener {
-                llDescriptionContainer.removeView(container)
-                descriptionEditTexts.remove(editText)
+                llDescriptionContainer.removeView(descriptionContainer)
+                descriptionEditTexts.remove(descriptionEditText)
             }
         }
 
-        container.addView(editText)
-        container.addView(removeButton)
-        descriptionEditTexts.add(editText)
-        llDescriptionContainer.addView(container)
-    }
+        descriptionContainer.addView(descriptionEditText)
+        descriptionContainer.addView(descriptionRemoveButton)
+        descriptionEditTexts.add(descriptionEditText)
+        llDescriptionContainer.addView(descriptionContainer)
 
-    // Função para adicionar um campo de preço unitário
-    private fun addUnitPriceField(initialValue: String) {
-        val container = LinearLayout(this).apply {
+        // Container para o preço unitário
+        val unitPriceContainer = LinearLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -228,38 +216,37 @@ class EditBudgetActivity : AppCompatActivity() {
             setPadding(0, 8, 0, 8)
         }
 
-        val editText = EditText(this).apply {
+        val unitPriceEditText = EditText(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 0,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 1f
             )
-            setText(initialValue)
+            setText(initialUnitPrice)
             background = resources.getDrawable(android.R.drawable.edit_text, null)
             setPadding(12, 12, 12, 12)
             inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
             hint = "Digite o preço"
         }
 
-        val removeButton = Button(this).apply {
+        val unitPriceRemoveButton = Button(this).apply {
+            text = "X"
             layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
+                80, // Largura fixa pequena (ajuste se necessário)
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
                 setMargins(8, 0, 0, 0)
             }
-            text = "X"
-            backgroundTintList = resources.getColorStateList(android.R.color.holo_red_light, null)
-            setTextColor(resources.getColor(android.R.color.white, null))
+            setBackgroundTintList(ContextCompat.getColorStateList(this@EditBudgetActivity, android.R.color.darker_gray))
             setOnClickListener {
-                llUnitPriceContainer.removeView(container)
-                unitPriceEditTexts.remove(editText)
+                llUnitPriceContainer.removeView(unitPriceContainer)
+                unitPriceEditTexts.remove(unitPriceEditText)
             }
         }
 
-        container.addView(editText)
-        container.addView(removeButton)
-        unitPriceEditTexts.add(editText)
-        llUnitPriceContainer.addView(container)
+        unitPriceContainer.addView(unitPriceEditText)
+        unitPriceContainer.addView(unitPriceRemoveButton)
+        unitPriceEditTexts.add(unitPriceEditText)
+        llUnitPriceContainer.addView(unitPriceContainer)
     }
 }
