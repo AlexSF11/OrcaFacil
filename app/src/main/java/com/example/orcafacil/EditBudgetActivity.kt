@@ -3,17 +3,22 @@ package com.example.orcafacil
 import android.os.Bundle
 import android.os.Build
 import android.util.Log
+import android.text.Editable
+import android.text.InputFilter
+import android.text.InputType
+import android.text.TextWatcher
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.orcafacil.model.App
 import com.example.orcafacil.model.Budget
+import java.text.NumberFormat
+import java.util.Locale
 import kotlin.concurrent.thread
 
 class EditBudgetActivity : AppCompatActivity() {
@@ -43,6 +48,9 @@ class EditBudgetActivity : AppCompatActivity() {
         btnSave = findViewById(R.id.btnSave)
         btnAddDescription = findViewById(R.id.btnAddDescription)
 
+        // Aplicar máscara monetária ao etTotalPrice
+        aplicarMascaraMonetaria(etTotalPrice)
+
         // Receber o objeto Budget do Intent
         val budget: Budget? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra("budget", Budget::class.java)
@@ -64,10 +72,11 @@ class EditBudgetActivity : AppCompatActivity() {
         etName.setText(budget.name)
         etPhone.setText(budget.phone)
         etAddress.setText(budget.address)
-        etTotalPrice.setText(budget.totalPrice.toString())
+        etTotalPrice.setText(NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(budget.totalPrice))
 
         // Adicionar itens dinamicamente
-        for (i in budget.description.indices) {
+        val minSize = minOf(budget.description.size, budget.unitPrice.size)
+        for (i in 0 until minSize) {
             val description = budget.description.getOrNull(i) ?: ""
             val unitPrice = budget.unitPrice.getOrNull(i)?.toString() ?: ""
             addDescriptionAndUnitPriceFields(description, unitPrice)
@@ -99,8 +108,11 @@ class EditBudgetActivity : AppCompatActivity() {
             val newPhone = etPhone.text.toString()
             val newAddress = etAddress.text.toString()
             val newDescription = descriptionEditTexts.map { it.text.toString().trim() }
-            val newUnitPrice = unitPriceEditTexts.map { it.text.toString().trim().toDoubleOrNull() ?: 0.0 }
-            val newTotalPriceText = etTotalPrice.text.toString()
+            val newUnitPrice = unitPriceEditTexts.map {
+                it.text.toString().replace("R$", "").replace(".", "").replace(",", "").trim().toDoubleOrNull()?.div(100) ?: 0.0
+            }
+            val newTotalPriceText = etTotalPrice.text.toString().replace("R$", "").replace(".", "").replace(",", "").trim()
+            val newTotalPrice = newTotalPriceText.toDoubleOrNull()?.div(100) ?: 0.0
 
             // Validações
             if (newName.isBlank()) {
@@ -127,9 +139,6 @@ class EditBudgetActivity : AppCompatActivity() {
                 etTotalPrice.error = "O preço total é obrigatório"
                 return@setOnClickListener
             }
-
-            // Converter o preço total
-            val newTotalPrice = newTotalPriceText.toDoubleOrNull() ?: 0.0
             if (newTotalPrice == 0.0) {
                 etTotalPrice.error = "O preço total deve ser um valor válido"
                 return@setOnClickListener
@@ -162,6 +171,38 @@ class EditBudgetActivity : AppCompatActivity() {
         }
     }
 
+    // Função para aplicar máscara monetária
+    private fun aplicarMascaraMonetaria(editText: EditText): TextWatcher {
+        val watcher = object : TextWatcher {
+            private var isUpdating = false
+            private val currencyFormat = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(editable: Editable?) {
+                if (isUpdating || editable.isNullOrEmpty()) return
+
+                isUpdating = true
+
+                val str = editable.toString().replace(Regex("[^0-9]"), "") // Remove tudo que não for número
+                val cleanValue = if (str.isNotEmpty()) str.toDouble() / 100 else 0.0
+                val formatted = currencyFormat.format(cleanValue)
+
+                editText.removeTextChangedListener(this) // Remove temporariamente o listener
+                editText.setText(formatted)
+                editText.setSelection(formatted.length) // Mantém o cursor no final
+                editText.addTextChangedListener(this) // Re-adiciona o listener
+
+                isUpdating = false
+            }
+        }
+        editText.addTextChangedListener(watcher)
+        editText.setTag(watcher) // Armazena o watcher como tag para controle posterior
+        return watcher
+    }
+
     // Função para adicionar campos de descrição e preço unitário em uma única linha horizontal
     private fun addDescriptionAndUnitPriceFields(initialDescription: String, initialUnitPrice: String) {
         val container = LinearLayout(this).apply {
@@ -184,20 +225,36 @@ class EditBudgetActivity : AppCompatActivity() {
             background = resources.getDrawable(android.R.drawable.edit_text, null)
             setPadding(12, 12, 12, 12)
             hint = "Digite a descrição"
+            filters = arrayOf(InputFilter.AllCaps()) // Adiciona filtro de caixa alta
         }
 
-        // Campo de preço unitário
+        // Campo de preço unitário com máscara monetária
         val unitPriceEditText = EditText(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 0,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 1f // Proporção menor para valor
             )
-            setText(initialUnitPrice)
+            setText(if (initialUnitPrice.isNotEmpty()) {
+                try {
+                    NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(initialUnitPrice.toDouble())
+                } catch (e: NumberFormatException) {
+                    Log.e("InitialUnitPrice", "Erro na conversão inicial: ${e.message}")
+                    ""
+                }
+            } else "")
             background = resources.getDrawable(android.R.drawable.edit_text, null)
             setPadding(12, 12, 12, 12)
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
             hint = "Digite o preço"
+            aplicarMascaraMonetaria(this) // Aplica máscara monetária
+            addTextChangedListener(object : TextWatcher {
+                override fun afterTextChanged(s: Editable?) {
+                    atualizarValorTotal() // Atualiza o total ao mudar o valor
+                }
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            })
         }
 
         // Botão de remoção
@@ -211,10 +268,19 @@ class EditBudgetActivity : AppCompatActivity() {
             }
             setBackgroundTintList(ContextCompat.getColorStateList(this@EditBudgetActivity, android.R.color.darker_gray))
             setOnClickListener {
-                llItemsContainer.removeView(container)
-                val index = llItemsContainer.indexOfChild(container)
-                descriptionEditTexts.removeAt(index)
-                unitPriceEditTexts.removeAt(index)
+                try {
+                    // Encontrar o índice correto usando as listas em vez de indexOfChild
+                    val index = descriptionEditTexts.indexOf(descriptionEditText)
+                    if (index >= 0) { // Verifica se o elemento ainda está na lista
+                        llItemsContainer.removeView(container)
+                        descriptionEditTexts.removeAt(index)
+                        unitPriceEditTexts.removeAt(index)
+                        atualizarValorTotal() // Atualiza o total ao remover
+                    }
+                } catch (e: Exception) {
+                    Log.e("RemoveButton", "Erro ao remover item: ${e.message}")
+                    Toast.makeText(this@EditBudgetActivity, "Erro ao remover item", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
@@ -225,5 +291,29 @@ class EditBudgetActivity : AppCompatActivity() {
         descriptionEditTexts.add(descriptionEditText)
         unitPriceEditTexts.add(unitPriceEditText)
         llItemsContainer.addView(container)
+    }
+
+    // Função para atualizar o valor total somando os unitPrices
+    private fun atualizarValorTotal() {
+        var total = 0.0
+
+        for (unitPriceEditText in unitPriceEditTexts) {
+            val valorTexto = unitPriceEditText.text.toString()
+                .replace("R$", "")
+                .replace(".", "")
+                .replace(",", "")
+                .trim()
+            total += if (valorTexto.isNotEmpty()) {
+                valorTexto.toDoubleOrNull()?.div(100) ?: 0.0
+            } else {
+                0.0
+            }
+        }
+
+        val moedaFormat = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        val totalWatcher = etTotalPrice.getTag() as? TextWatcher
+        totalWatcher?.let { etTotalPrice.removeTextChangedListener(it) } // Remove listener temporariamente
+        etTotalPrice.setText(moedaFormat.format(total))
+        totalWatcher?.let { etTotalPrice.addTextChangedListener(it) } // Re-adiciona o listener
     }
 }
