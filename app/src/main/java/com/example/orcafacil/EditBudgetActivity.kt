@@ -19,6 +19,7 @@ import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextWatcher
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
@@ -54,7 +55,6 @@ class EditBudgetActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_edit_budget)
 
         // Inicializar os campos
@@ -440,29 +440,43 @@ class EditBudgetActivity : AppCompatActivity() {
         return watcher
     }
 
-    // Função para adicionar campos de descrição e preço unitário em uma única linha horizontal
+    // Função para adicionar campos de descrição e preço unitário
     private fun addDescriptionAndUnitPriceFields(initialDescription: String, initialUnitPrice: String) {
+        // Container principal para o item (vertical)
         val container = LinearLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 8, 0, 8)
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, 16, 0, 16) // Aumenta o padding vertical para maior espaçamento entre linhas
         }
 
         // Campo de descrição
         val descriptionEditText = EditText(this).apply {
             layoutParams = LinearLayout.LayoutParams(
-                0,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                2f // Proporção maior para descrição
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
             )
             setText(initialDescription)
             background = resources.getDrawable(android.R.drawable.edit_text, null)
             setPadding(12, 12, 12, 12)
             hint = "Digite a descrição"
             filters = arrayOf(InputFilter.AllCaps()) // Adiciona filtro de caixa alta
+            isSingleLine = false // Permite múltiplas linhas
+            minLines = 1 // Garante que o campo tenha pelo menos 1 linha
+            maxLines = 5 // Limita a 5 linhas (ajuste conforme necessário)
+        }
+
+        // Subcontainer para o campo Valor e o botão de remoção (horizontal)
+        val valorERemoverLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(0, 8, 0, 0) // Espaço entre a descrição e os campos abaixo
+            }
         }
 
         // Campo de preço unitário com máscara monetária
@@ -470,7 +484,7 @@ class EditBudgetActivity : AppCompatActivity() {
             layoutParams = LinearLayout.LayoutParams(
                 0,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
-                1f // Proporção menor para valor
+                3f // Peso maior para ocupar mais espaço
             )
             setText(if (initialUnitPrice.isNotEmpty()) {
                 try {
@@ -498,12 +512,14 @@ class EditBudgetActivity : AppCompatActivity() {
         val removeButton = Button(this).apply {
             text = "X"
             layoutParams = LinearLayout.LayoutParams(
-                80, // Largura fixa pequena
-                ViewGroup.LayoutParams.WRAP_CONTENT
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f // Peso menor para ocupar menos espaço
             ).apply {
-                setMargins(8, 0, 0, 0)
+                setMargins(8, 0, 0, 0) // Espaço à esquerda do botão
             }
             setBackgroundTintList(ContextCompat.getColorStateList(this@EditBudgetActivity, android.R.color.darker_gray))
+            setTextColor(ContextCompat.getColor(this@EditBudgetActivity, android.R.color.white))
             setOnClickListener {
                 try {
                     // Encontrar o índice correto usando as listas em vez de indexOfChild
@@ -521,10 +537,27 @@ class EditBudgetActivity : AppCompatActivity() {
             }
         }
 
-        // Adicionar os elementos ao contêiner horizontal
+        // Adiciona o campo de valor e o botão de remoção ao subcontainer
+        valorERemoverLayout.addView(unitPriceEditText)
+        valorERemoverLayout.addView(removeButton)
+
+        // Adiciona os elementos ao container principal
         container.addView(descriptionEditText)
-        container.addView(unitPriceEditText)
-        container.addView(removeButton)
+        container.addView(valorERemoverLayout)
+
+        // Adiciona um separador visual (uma linha)
+        val divider = View(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                1
+            ).apply {
+                setMargins(0, 16, 0, 0) // Aumenta a margem superior do separador
+            }
+            setBackgroundColor(ContextCompat.getColor(this@EditBudgetActivity, android.R.color.darker_gray))
+        }
+        container.addView(divider)
+
+        // Adiciona o container ao llItemsContainer
         descriptionEditTexts.add(descriptionEditText)
         unitPriceEditTexts.add(unitPriceEditText)
         llItemsContainer.addView(container)

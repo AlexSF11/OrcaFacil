@@ -18,6 +18,7 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextWatcher
 import android.util.Log
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
@@ -96,29 +97,53 @@ class FazerOrcamentoActivity : AppCompatActivity() {
 
         // Função para criar uma nova linha com campos e botão de remoção
         fun criarNovaLinha(): Pair<LinearLayout, Pair<EditText, EditText>> {
+            // Container principal para a linha (vertical)
             val novaTarefaLayout = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
+                orientation = LinearLayout.VERTICAL
                 layoutParams = LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
                 )
+                setPadding(0, 16, 0, 16) // Aumenta o padding vertical para maior espaçamento entre linhas
             }
 
+            // Campo de descrição (Produto / Serviço)
             val novaTarefa = EditText(this).apply {
                 hint = "Produto / Serviço"
                 layoutParams = LinearLayout.LayoutParams(
-                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 2f
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
                 )
+                background = resources.getDrawable(android.R.drawable.edit_text, null)
+                setPadding(12, 12, 12, 12)
+                filters = arrayOf(InputFilter.AllCaps())
+                isSingleLine = false // Permite múltiplas linhas
+                minLines = 1 // Garante que o campo tenha pelo menos 1 linha
+                maxLines = 5 // Limita a 5 linhas (ajuste conforme necessário)
             }
 
-            novaTarefa.filters = arrayOf(InputFilter.AllCaps())
+            // Subcontainer para o campo Valor e o botão de remoção (horizontal)
+            val valorERemoverLayout = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 8, 0, 0) // Espaço entre a descrição e os campos abaixo
+                }
+            }
 
+            // Campo de valor
             val novoValorServico = EditText(this).apply {
                 hint = "Valor"
                 inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
                 layoutParams = LinearLayout.LayoutParams(
-                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f
+                    0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    3f // Peso maior para ocupar mais espaço
                 )
+                background = resources.getDrawable(android.R.drawable.edit_text, null)
+                setPadding(12, 12, 12, 12)
                 aplicarMascaraMonetaria(this)
             }
 
@@ -132,15 +157,18 @@ class FazerOrcamentoActivity : AppCompatActivity() {
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             })
 
-            // Botão de remoção pequeno
+            // Botão de remoção
             val btnRemover = Button(this).apply {
                 text = "X"
                 layoutParams = LinearLayout.LayoutParams(
-                    80, // Largura fixa pequena (ajuste se necessário)
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-                // Corrige o erro usando setBackgroundTintList
+                    0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    1f // Peso menor para ocupar menos espaço
+                ).apply {
+                    setMargins(8, 0, 0, 0) // Espaço à esquerda do botão
+                }
                 setBackgroundTintList(ContextCompat.getColorStateList(this@FazerOrcamentoActivity, android.R.color.darker_gray))
+                setTextColor(ContextCompat.getColor(this@FazerOrcamentoActivity, android.R.color.white))
                 setOnClickListener {
                     val parentLayout = novaTarefaLayout.parent as LinearLayout
                     val index = parentLayout.indexOfChild(novaTarefaLayout)
@@ -150,10 +178,25 @@ class FazerOrcamentoActivity : AppCompatActivity() {
                 }
             }
 
-            // Adiciona os elementos ao layout horizontal
+            // Adiciona o campo de valor e o botão de remoção ao subcontainer
+            valorERemoverLayout.addView(novoValorServico)
+            valorERemoverLayout.addView(btnRemover)
+
+            // Adiciona os elementos ao container principal
             novaTarefaLayout.addView(novaTarefa)
-            novaTarefaLayout.addView(novoValorServico)
-            novaTarefaLayout.addView(btnRemover)
+            novaTarefaLayout.addView(valorERemoverLayout)
+
+            // Adiciona um separador visual (uma linha)
+            val divider = View(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    1
+                ).apply {
+                    setMargins(0, 16, 0, 0) // Aumenta a margem superior do separador
+                }
+                setBackgroundColor(ContextCompat.getColor(this@FazerOrcamentoActivity, android.R.color.darker_gray))
+            }
+            novaTarefaLayout.addView(divider)
 
             return Pair(novaTarefaLayout, Pair(novaTarefa, novoValorServico))
         }
@@ -173,7 +216,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         btnSalvar = findViewById(R.id.btn_salvar)
         btnSalvar.setOnClickListener {
             if (validarFormulario()) {
-
                 val descriptions = mutableListOf<String>()
                 val unitPrices = mutableListOf<Double>()
 

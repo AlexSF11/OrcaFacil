@@ -11,9 +11,6 @@ interface BudgetDao {
     @Insert
     fun insert(budget: Budget)
 
-    @Query("SELECT * FROM Budget WHERE name = :name")
-    fun getRegisterByName(name: String): LiveData<List<Budget>>
-
     @Query("SELECT * FROM Budget")
     fun getAllBudgets(): LiveData<List<Budget>>
 

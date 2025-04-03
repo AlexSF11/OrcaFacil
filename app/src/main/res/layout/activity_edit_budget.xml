@@ -1,175 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:layout_height="match_parent">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:background="#F5F5F5">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <!-- Título -->
         <TextView
-            android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Editar Orçamento"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="#2E7D32"
-            android:layout_marginBottom="24dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:layout_gravity="center"
+            android:text="Informações do Cliente"
+            android:textColor="#000"
+            android:textSize="25dp"
+            android:textStyle="bold" />
 
-        <!-- Campo Nome -->
-        <TextView
-            android:id="@+id/tvNameLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Nome"
-            android:textSize="16sp"
-            android:textColor="#424242"
-            app:layout_constraintTop_toBottomOf="@id/tvTitle"
-            app:layout_constraintStart_toStartOf="parent" />
-
+        <!-- Campos de entrada -->
         <EditText
             android:id="@+id/etName"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Digite o nome"
+            android:hint="Nome"
             android:background="@android:drawable/edit_text"
             android:padding="12dp"
-            android:layout_marginTop="4dp"
-            app:layout_constraintTop_toBottomOf="@id/tvNameLabel"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <!-- Campo Telefone -->
-        <TextView
-            android:id="@+id/tvPhoneLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Telefone"
-            android:textSize="16sp"
-            android:textColor="#424242"
-            android:layout_marginTop="16dp"
-            app:layout_constraintTop_toBottomOf="@id/etName"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:layout_marginTop="8dp" />
 
         <EditText
             android:id="@+id/etPhone"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Digite o telefone"
-            android:inputType="phone"
+            android:hint="Telefone"
+            android:inputType="number"
             android:background="@android:drawable/edit_text"
             android:padding="12dp"
-            android:layout_marginTop="4dp"
-            app:layout_constraintTop_toBottomOf="@id/tvPhoneLabel"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <!-- Campo Endereço -->
-        <TextView
-            android:id="@+id/tvAddressLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Endereço"
-            android:textSize="16sp"
-            android:textColor="#424242"
-            android:layout_marginTop="16dp"
-            app:layout_constraintTop_toBottomOf="@id/etPhone"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:layout_marginTop="8dp" />
 
         <EditText
             android:id="@+id/etAddress"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Digite o endereço"
+            android:hint="Endereço"
             android:background="@android:drawable/edit_text"
             android:padding="12dp"
-            android:layout_marginTop="4dp"
-            app:layout_constraintTop_toBottomOf="@id/tvAddressLabel"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:layout_marginTop="8dp" />
 
-        <!-- Campo Descrição e Preço Unitário -->
+        <!-- Título Relatório Inicial -->
         <TextView
-            android:id="@+id/tvItemsLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Itens"
-            android:textSize="16sp"
-            android:textColor="#424242"
-            android:layout_marginTop="16dp"
-            app:layout_constraintTop_toBottomOf="@id/etAddress"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <Button
-            android:id="@+id/btnAddDescription"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Adicionar Item"
-            android:textSize="14sp"
-            android:backgroundTint="#4CAF50"
-            android:textColor="#FFFFFF"
-            app:layout_constraintTop_toTopOf="@id/tvItemsLabel"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:layout_gravity="center"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="10dp"
+            android:text="Orçamento"
+            android:textColor="#000"
+            android:textSize="25dp"
+            android:textStyle="bold" />
 
         <LinearLayout
             android:id="@+id/llItemsContainer"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginTop="4dp"
-            app:layout_constraintTop_toBottomOf="@id/tvItemsLabel"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:layout_marginBottom="16dp" />
 
-        <!-- Campo Preço Total -->
-        <TextView
-            android:id="@+id/tvTotalPriceLabel"
-            android:layout_width="wrap_content"
+        <!-- Botão Adicionar Item -->
+        <Button
+            android:id="@+id/btnAddDescription"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Preço Total"
-            android:textSize="16sp"
-            android:textColor="#424242"
-            android:layout_marginTop="16dp"
-            app:layout_constraintTop_toBottomOf="@id/llItemsContainer"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:backgroundTint="#0d6efd"
+            android:text="ADICIONAR ITEM"
+            android:textColor="@color/white" />
 
-        <EditText
-            android:id="@+id/etTotalPrice"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Digite o preço total"
-            android:inputType="numberDecimal"
-            android:background="@android:drawable/edit_text"
-            android:padding="12dp"
-            android:layout_marginTop="4dp"
-            app:layout_constraintTop_toBottomOf="@id/tvTotalPriceLabel"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Valor Total: "
+                android:textColor="@color/black"
+                android:textSize="20dp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etTotalPrice"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:background="@android:drawable/edit_text"
+                android:padding="12dp"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
 
         <!-- Botão Salvar -->
         <Button
             android:id="@+id/btnSave"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:backgroundTint="#198754"
             android:text="Salvar"
-            android:textSize="16sp"
-            android:backgroundTint="#2E7D32"
-            android:textColor="#FFFFFF"
-            android:padding="12dp"
-            android:layout_marginTop="32dp"
-            android:layout_marginBottom="16dp"
-            app:layout_constraintTop_toBottomOf="@id/etTotalPrice"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:textColor="@color/white"
+            android:layout_marginTop="16dp" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 </ScrollView>
