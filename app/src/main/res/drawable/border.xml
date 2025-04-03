@@ -1,0 +1,6 @@
+<!-- res/drawable/borda.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#FFFFFF"/> <!-- Fundo branco -->
+    <stroke android:width="2dp" android:color="#2E2E2E"/> <!-- Borda vermelha -->
+    <corners android:radius="8dp"/> <!-- Cantos arredondados -->
+</shape>
