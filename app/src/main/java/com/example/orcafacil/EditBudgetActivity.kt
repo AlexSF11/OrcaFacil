@@ -162,7 +162,16 @@ class EditBudgetActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Criar um novo objeto Budget com os dados atualizados
+            // Determinar o caminho do PDF
+            val pdfPath = if (budget.pdfPath != null && File(budget.pdfPath).exists()) {
+                // Se já existe um pdfPath e o arquivo existe, usar o mesmo caminho para sobrescrever
+                budget.pdfPath
+            } else {
+                // Caso contrário, criar um novo caminho com o padrão Orcamento_${budget.id}.pdf
+                getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath + "/Orcamento_${budget.id}.pdf"
+            }
+
+            // Criar um novo objeto Budget com os dados atualizados, incluindo o pdfPath
             val updatedBudget = Budget(
                 id = budget.id,
                 name = newName,
@@ -171,7 +180,8 @@ class EditBudgetActivity : AppCompatActivity() {
                 description = newDescription,
                 unitPrice = newUnitPrice,
                 totalPrice = newTotalPrice,
-                createdDate = budget.createdDate
+                createdDate = budget.createdDate,
+                pdfPath = pdfPath // Manter ou atualizar o pdfPath
             )
 
             // Atualizar o orçamento no banco de dados
@@ -186,8 +196,7 @@ class EditBudgetActivity : AppCompatActivity() {
 
                         // Gerar e abrir o PDF após salvar
                         try {
-                            val filePath = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath + "/Orcamento_${updatedBudget.id}.pdf"
-                            val pdfFile = File(filePath)
+                            val pdfFile = File(pdfPath)
                             Log.d("EditBudgetActivity", "Caminho do PDF: ${pdfFile.absolutePath}")
                             generatePDF(pdfFile)
                             Toast.makeText(this, "PDF gerado com sucesso!", Toast.LENGTH_LONG).show()
