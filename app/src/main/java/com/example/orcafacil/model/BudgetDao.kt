@@ -2,6 +2,7 @@ package com.example.orcafacil.model
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
@@ -16,4 +17,7 @@ interface BudgetDao {
 
     @Update
     fun update(budget: Budget) // Novo método para atualizar um orçamento
+
+    @Delete
+    fun delete(budget: Budget) // Método necessário para remoção
 }

@@ -1,28 +1,37 @@
 package com.example.orcafacil
 
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
+import com.example.orcafacil.model.App
 import com.example.orcafacil.model.Budget
+import java.io.File
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.concurrent.thread
 
-class BudgetAdapter(private val budgets: List<Budget>) :
-    RecyclerView.Adapter<BudgetAdapter.BudgetViewHolder>() {
+class BudgetAdapter(
+    private val budgets: MutableList<Budget> // Alterado para MutableList para permitir remoção
+) : RecyclerView.Adapter<BudgetAdapter.BudgetViewHolder>() {
 
     class BudgetViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvBudgetName: TextView = itemView.findViewById(R.id.tvBudgetName)
         val tvBudgetCreatedDate: TextView = itemView.findViewById(R.id.tvBudgetCreatedDate)
         val tvBudgetTotalPrice: TextView = itemView.findViewById(R.id.tvBudgetTotalPrice)
+        val btnPrintPdf: Button = itemView.findViewById(R.id.btnPrintPdf)
+        val btnDeleteBudget: Button = itemView.findViewById(R.id.btnDeleteBudget)
     }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BudgetViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_budget, parent, false)
@@ -38,6 +47,90 @@ class BudgetAdapter(private val budgets: List<Budget>) :
         val currencyFormat = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
         holder.tvBudgetTotalPrice.text = currencyFormat.format(budget.totalPrice)
 
+        // Configurar o botão de Imprimir PDF
+        holder.btnPrintPdf.setOnClickListener {
+            budget.pdfPath?.let { path ->
+                val pdfFile = File(path)
+                if (pdfFile.exists()) {
+                    val uri = FileProvider.getUriForFile(
+                        holder.itemView.context,
+                        "${holder.itemView.context.packageName}.provider",
+                        pdfFile
+                    )
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "application/pdf"
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+
+                    val chooser = Intent.createChooser(intent, "Imprimir PDF")
+                    try {
+                        holder.itemView.context.startActivity(chooser)
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            holder.itemView.context,
+                            "Nenhum aplicativo de impressão encontrado",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                } else {
+                    Toast.makeText(
+                        holder.itemView.context,
+                        "Arquivo PDF não encontrado!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } ?: Toast.makeText(
+                holder.itemView.context,
+                "Nenhum PDF associado a este orçamento!",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        // Configurar o botão de Remover
+        holder.btnDeleteBudget.setOnClickListener {
+            thread {
+                try {
+                    val app = holder.itemView.context.applicationContext as App
+                    val dao = app.db.budgetDao()
+                    dao.delete(budget)
+
+                    // Remover o PDF associado, se existir
+                    budget.pdfPath?.let { path ->
+                        val pdfFile = File(path)
+                        if (pdfFile.exists()) {
+                            pdfFile.delete()
+                        }
+                    }
+
+                    // Atualizar a lista na UI
+                    (holder.itemView.context as? MyBudgets)?.runOnUiThread {
+                        budgets.removeAt(position)
+                        notifyItemRemoved(position)
+                        notifyItemRangeChanged(position, budgets.size)
+
+                        // Atualizar visibilidade do tvEmpty e rvBudgets
+                        if (budgets.isEmpty()) {
+                            (holder.itemView.context as MyBudgets).updateEmptyViewVisibility(true)
+                        }
+
+                        Toast.makeText(
+                            holder.itemView.context,
+                            "Orçamento removido com sucesso!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } catch (e: Exception) {
+                    (holder.itemView.context as? MyBudgets)?.runOnUiThread {
+                        Toast.makeText(
+                            holder.itemView.context,
+                            "Erro ao remover o orçamento: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            }
+        }
 
         // Adicionar listener de clique para abrir a tela de edição
         holder.itemView.setOnClickListener {

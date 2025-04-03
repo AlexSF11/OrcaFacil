@@ -4,42 +4,78 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="15dp"
     android:background="@drawable/border"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:padding="8dp">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="2"
-        android:orientation="vertical">
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvBudgetName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Spotify"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <!-- Data (abaixo do nome) -->
+            <TextView
+                android:id="@+id/tvBudgetCreatedDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="21/4/2025"
+                android:textSize="12sp" />
+
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/tvBudgetName"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvBudgetTotalPrice"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Spotify"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <!-- Data (abaixo do nome) -->
-        <TextView
-            android:id="@+id/tvBudgetCreatedDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="21/4/2025"
-            android:textSize="12sp" />
+            android:layout_weight="1"
+            android:gravity="end"
+            android:text="R$ 27,90"
+            android:textStyle="bold"
+            android:textSize="14sp" />
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvBudgetTotalPrice"
-        android:layout_width="0dp"
+    <!-- Container para os botões -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:orientation="horizontal"
         android:gravity="end"
-        android:text="R$ 27,90"
-        android:textStyle="bold"
-        android:textSize="14sp" />
+        android:layout_marginTop="8dp">
+
+        <!-- Botão para Imprimir PDF -->
+        <Button
+            android:id="@+id/btnPrintPdf"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Imprimir PDF"
+            android:textSize="12sp"
+            android:backgroundTint="@android:color/holo_blue_light"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Botão para Remover Orçamento -->
+        <Button
+            android:id="@+id/btnDeleteBudget"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Remover"
+            android:textSize="12sp"
+            android:backgroundTint="@android:color/holo_red_light" />
+
+    </LinearLayout>
 
 </LinearLayout>

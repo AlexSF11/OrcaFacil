@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,6 +19,7 @@ class MyBudgets : AppCompatActivity() {
     private lateinit var tvEmpty: TextView
     private lateinit var budgetAdapter: BudgetAdapter
     private lateinit var budgetsLiveData: LiveData<List<Budget>>
+    private val budgets = mutableListOf<Budget>() // Lista mutável para o adapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +30,10 @@ class MyBudgets : AppCompatActivity() {
         tvEmpty = findViewById(R.id.tvEmpty)
         rvBudgets.layoutManager = LinearLayoutManager(this)
 
+        // Configurar o adapter com a lista mutável
+        budgetAdapter = BudgetAdapter(budgets)
+        rvBudgets.adapter = budgetAdapter
+
         // Buscar todos os orçamentos do banco de dados
         fetchAllBudgets()
     }
@@ -39,20 +43,25 @@ class MyBudgets : AppCompatActivity() {
         val dao = app.db.budgetDao()
         budgetsLiveData = dao.getAllBudgets()
 
-        budgetsLiveData.observe(this) { budgets ->
-            Log.i("MyBudgets", "Budgets received: $budgets")
-            budgetAdapter = BudgetAdapter(budgets ?: emptyList())
-            rvBudgets.adapter = budgetAdapter
-            rvBudgets.adapter?.notifyDataSetChanged()
+        budgetsLiveData.observe(this) { budgetList ->
+            Log.i("MyBudgets", "Budgets received: $budgetList")
+            budgets.clear()
+            budgets.addAll(budgetList ?: emptyList())
+            budgetAdapter.notifyDataSetChanged()
 
-            if (budgets.isNullOrEmpty()) {
-                tvEmpty.text = "Nenhum orçamento encontrado"
-                tvEmpty.visibility = View.VISIBLE
-                rvBudgets.visibility = View.GONE
-            } else {
-                tvEmpty.visibility = View.GONE
-                rvBudgets.visibility = View.VISIBLE
-            }
+            updateEmptyViewVisibility(budgets.isEmpty())
+        }
+    }
+
+    // Função para atualizar a visibilidade do tvEmpty e rvBudgets
+    fun updateEmptyViewVisibility(isEmpty: Boolean) {
+        if (isEmpty) {
+            tvEmpty.text = "Nenhum orçamento encontrado"
+            tvEmpty.visibility = View.VISIBLE
+            rvBudgets.visibility = View.GONE
+        } else {
+            tvEmpty.visibility = View.GONE
+            rvBudgets.visibility = View.VISIBLE
         }
     }
 
