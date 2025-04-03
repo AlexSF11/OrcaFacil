@@ -16,7 +16,8 @@ data class Budget(
     val description: List<String>,
     val unitPrice: List<Double>,
     val totalPrice: Double,
-    val createdDate: Date = Date()
+    val createdDate: Date = Date(),
+    val pdfPath: String? = null // Campo para o caminho do PDF
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         id = parcel.readInt(),
@@ -26,7 +27,8 @@ data class Budget(
         description = parcel.createStringArrayList() ?: emptyList(),
         unitPrice = parcel.createDoubleArray()?.toList() ?: emptyList(),
         totalPrice = parcel.readDouble(),
-        createdDate = Date(parcel.readLong())
+        createdDate = Date(parcel.readLong()),
+        pdfPath = parcel.readString()
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -38,6 +40,7 @@ data class Budget(
         parcel.writeDoubleArray(unitPrice.toDoubleArray())
         parcel.writeDouble(totalPrice)
         parcel.writeLong(createdDate.time)
+        parcel.writeString(pdfPath)
     }
 
     override fun describeContents(): Int {

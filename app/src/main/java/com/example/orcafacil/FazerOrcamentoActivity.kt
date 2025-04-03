@@ -201,7 +201,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
             return Pair(novaTarefaLayout, Pair(novaTarefa, novoValorServico))
         }
 
-        // Criar a primeira linha
+        // Criar a primeira linha para o usuário preencher
         val (primeiraTarefaLayout, primeiraTarefaPair) = criarNovaLinha()
         layoutTarefas.addView(primeiraTarefaLayout)
         listaTarefasValores.add(primeiraTarefaPair)
@@ -240,29 +240,32 @@ class FazerOrcamentoActivity : AppCompatActivity() {
                     0.0
                 }
 
+                // Gerar o PDF e obter o caminho
+                val timestamp = System.currentTimeMillis()
+                val filePath = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath + "/orcamento_$timestamp.pdf"
+                pdfFile = File(filePath)
+                generatePDF(pdfFile)
+
+                // Criar o objeto Budget com o caminho do PDF
+                val budget = Budget(
+                    name = etName.text.toString(),
+                    address = etAddress.text.toString(),
+                    phone = etPhone.text.toString(),
+                    description = descriptions,
+                    unitPrice = unitPrices,
+                    totalPrice = totalPrice,
+                    pdfPath = pdfFile.absolutePath // Salvar o caminho do PDF
+                )
+
                 // Executar inserção no banco em uma thread separada
                 Thread {
                     val app = application as App
                     val dao = app.db.budgetDao()
-                    dao.insert(
-                        Budget(
-                            name = etName.text.toString(),
-                            address = etAddress.text.toString(),
-                            phone = etPhone.text.toString(),
-                            description = descriptions,
-                            unitPrice = unitPrices,
-                            totalPrice = totalPrice
-                        )
-                    )
+                    val budgetId = dao.insert(budget) // Inserir e obter o ID do orçamento
+                    Log.d("FazerOrcamento", "Orçamento salvo com ID: $budgetId")
                 }.start()
 
                 Toast.makeText(this, "Orçamento salvo com sucesso!", Toast.LENGTH_LONG).show()
-
-                val timestamp = System.currentTimeMillis()
-                val filePath = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath + "/orcamento_$timestamp.pdf"
-                pdfFile = File(filePath)
-
-                generatePDF(pdfFile)
                 Log.d("DEBUG_PDF", "Arquivo salvo em: ${pdfFile.absolutePath}")
                 Toast.makeText(this, "PDF gerado com sucesso!", Toast.LENGTH_LONG).show()
                 openPDF(pdfFile)
