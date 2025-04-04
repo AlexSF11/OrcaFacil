@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:background="@color/white"
     android:layout_height="match_parent">
 
     <!-- ScrollView para o conteúdo rolável -->
@@ -36,6 +37,7 @@
                 android:id="@+id/etName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="#222222"
                 android:hint="Nome"
                 android:background="@android:drawable/edit_text"
                 android:padding="12dp"
@@ -43,6 +45,7 @@
 
             <EditText
                 android:id="@+id/etPhone"
+                android:textColor="#222222"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Telefone"
@@ -53,6 +56,7 @@
 
             <EditText
                 android:id="@+id/etAddress"
+                android:textColor="#222222"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Endereço"

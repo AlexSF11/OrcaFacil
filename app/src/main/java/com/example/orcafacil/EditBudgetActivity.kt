@@ -535,7 +535,7 @@ class EditBudgetActivity : AppCompatActivity() {
             background = resources.getDrawable(android.R.drawable.edit_text, null)
             setPadding(12, 12, 12, 12)
             inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
-            hint = "Digite o preço"
+            hint = "Valor Unitário"
             aplicarMascaraMonetaria(this) // Aplica máscara monetária
             addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
@@ -608,7 +608,7 @@ class EditBudgetActivity : AppCompatActivity() {
         if (focusOnNewItem) {
             llItemsContainer.post {
                 val scrollView = llItemsContainer.parent.parent as ScrollView
-                scrollView.smoothScrollTo(0, container.bottom)
+                scrollView.smoothScrollTo(0, container.bottom + 10)
             }
 
             // Focar no campo de descrição do novo item
