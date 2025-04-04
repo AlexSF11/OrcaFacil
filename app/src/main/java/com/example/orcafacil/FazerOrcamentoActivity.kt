@@ -3,11 +3,11 @@ package com.example.orcafacil
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.pdf.PdfDocument
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.graphics.pdf.PdfDocument
 import android.os.Bundle
 import android.os.Environment
 import android.text.Editable
@@ -23,8 +23,10 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.example.orcafacil.model.App
 import com.example.orcafacil.model.Budget
@@ -35,7 +37,9 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.core.content.ContextCompat
+import android.graphics.PorterDuff
+import android.content.Context
+import android.view.inputmethod.InputMethodManager
 
 class FazerOrcamentoActivity : AppCompatActivity() {
     private lateinit var etName: EditText
@@ -43,6 +47,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
     private lateinit var etAddress: EditText
     private lateinit var etValorTotal: EditText
     private lateinit var btnSalvar: Button
+    private lateinit var layoutTarefas: LinearLayout
     private lateinit var pdfFile: File
     private val listaTarefas = mutableListOf<EditText>()
     private val listaTarefasValores = mutableListOf<Pair<EditText, EditText>>()
@@ -92,11 +97,11 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         etName.filters = arrayOf(InputFilter.AllCaps())
         etAddress.filters = arrayOf(InputFilter.AllCaps())
 
-        val layoutTarefas = findViewById<LinearLayout>(R.id.layout_tarefas)
+        layoutTarefas = findViewById(R.id.layout_tarefas)
         val btnAdicionarTarefa = findViewById<Button>(R.id.btnAdicionarTarefa)
 
         // Função para criar uma nova linha com campos e botão de remoção
-        fun criarNovaLinha(): Pair<LinearLayout, Pair<EditText, EditText>> {
+        fun criarNovaLinha(focusOnNewItem: Boolean = true): Pair<LinearLayout, Pair<EditText, EditText>> {
             // Container principal para a linha (vertical)
             val novaTarefaLayout = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
@@ -159,16 +164,20 @@ class FazerOrcamentoActivity : AppCompatActivity() {
 
             // Botão de remoção
             val btnRemover = Button(this).apply {
-                text = "X"
                 layoutParams = LinearLayout.LayoutParams(
-                    0,
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    1f // Peso menor para ocupar menos espaço
+                    40.dpToPx(), // Largura fixa para o ícone
+                    40.dpToPx(), // Altura fixa para o ícone
+                    0f
                 ).apply {
                     setMargins(8, 0, 0, 0) // Espaço à esquerda do botão
                 }
-                setBackgroundTintList(ContextCompat.getColorStateList(this@FazerOrcamentoActivity, android.R.color.darker_gray))
-                setTextColor(ContextCompat.getColor(this@FazerOrcamentoActivity, android.R.color.white))
+                setBackgroundResource(R.drawable.ripple_effect) // Fundo com ripple
+                // Define o ícone usando setCompoundDrawablesWithIntrinsicBounds
+                val iconDrawable = ContextCompat.getDrawable(this@FazerOrcamentoActivity, R.drawable.trash)
+                iconDrawable?.setColorFilter(ContextCompat.getColor(this@FazerOrcamentoActivity, android.R.color.white), PorterDuff.Mode.SRC_IN)
+                setCompoundDrawablesWithIntrinsicBounds(iconDrawable, null, null, null) // Ícone à esquerda (ou central, já que não há texto)
+                contentDescription = "Remover item" // Para acessibilidade
+                setPadding(8.dpToPx(), 14.dpToPx(), 8.dpToPx(), 14.dpToPx()) // Padding interno para o ícone
                 setOnClickListener {
                     val parentLayout = novaTarefaLayout.parent as LinearLayout
                     val index = parentLayout.indexOfChild(novaTarefaLayout)
@@ -198,18 +207,38 @@ class FazerOrcamentoActivity : AppCompatActivity() {
             }
             novaTarefaLayout.addView(divider)
 
+            // Adiciona o container ao layoutTarefas
+            layoutTarefas.addView(novaTarefaLayout)
+
+            // Rolar para o novo item adicionado e focar apenas se focusOnNewItem for true
+            if (focusOnNewItem) {
+                layoutTarefas.post {
+                    val scrollView = layoutTarefas.parent.parent as ScrollView
+                    scrollView.smoothScrollTo(0, novaTarefaLayout.bottom)
+                }
+
+                // Focar no campo de descrição do novo item
+                novaTarefa.requestFocus()
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.showSoftInput(novaTarefa, InputMethodManager.SHOW_IMPLICIT)
+            }
+
             return Pair(novaTarefaLayout, Pair(novaTarefa, novoValorServico))
         }
 
-        // Criar a primeira linha para o usuário preencher
-        val (primeiraTarefaLayout, primeiraTarefaPair) = criarNovaLinha()
-        layoutTarefas.addView(primeiraTarefaLayout)
+        // Criar a primeira linha para o usuário preencher, sem foco inicial
+        val (primeiraTarefaLayout, primeiraTarefaPair) = criarNovaLinha(focusOnNewItem = false)
         listaTarefasValores.add(primeiraTarefaPair)
 
-        // Atualizar o botão "Adicionar +" para usar a função criarNovaLinha
+        // Garantir que o ScrollView comece no topo
+        val scrollView = findViewById<ScrollView>(R.id.scrollView)
+        scrollView.post {
+            scrollView.scrollTo(0, 0)
+        }
+
+        // Atualizar o botão "Adicionar +" para usar a função criarNovaLinha com foco
         btnAdicionarTarefa.setOnClickListener {
-            val (novaTarefaLayout, novaTarefaPair) = criarNovaLinha()
-            layoutTarefas.addView(novaTarefaLayout)
+            val (novaTarefaLayout, novaTarefaPair) = criarNovaLinha(focusOnNewItem = true)
             listaTarefasValores.add(novaTarefaPair)
         }
 
@@ -486,5 +515,11 @@ class FazerOrcamentoActivity : AppCompatActivity() {
             return false
         }
         return true
+    }
+
+    // Função auxiliar para converter dp para pixels
+    private fun Int.dpToPx(): Int {
+        val density = resources.displayMetrics.density
+        return (this * density).toInt()
     }
 }

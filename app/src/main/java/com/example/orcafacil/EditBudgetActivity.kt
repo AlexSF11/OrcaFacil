@@ -24,6 +24,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -39,6 +40,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.concurrent.thread
+import android.graphics.PorterDuff
+import android.content.Context
+import android.view.inputmethod.InputMethodManager
 
 class EditBudgetActivity : AppCompatActivity() {
 
@@ -48,7 +52,7 @@ class EditBudgetActivity : AppCompatActivity() {
     private lateinit var llItemsContainer: LinearLayout
     private lateinit var etTotalPrice: EditText
     private lateinit var btnSave: Button
-    private lateinit var btnDeleteBudget: Button // Novo botão Remover
+    private lateinit var btnDeleteBudget: Button
     private lateinit var btnAddDescription: Button
 
     private val descriptionEditTexts = mutableListOf<EditText>()
@@ -65,7 +69,7 @@ class EditBudgetActivity : AppCompatActivity() {
         llItemsContainer = findViewById(R.id.llItemsContainer)
         etTotalPrice = findViewById(R.id.etTotalPrice)
         btnSave = findViewById(R.id.btnSave)
-        btnDeleteBudget = findViewById(R.id.btnDeleteBudget) // Inicializar o botão Remover
+        btnDeleteBudget = findViewById(R.id.btnDeleteBudget)
         btnAddDescription = findViewById(R.id.btnAddDescription)
 
         // Aplicar máscara monetária ao etTotalPrice
@@ -94,17 +98,23 @@ class EditBudgetActivity : AppCompatActivity() {
         etAddress.setText(budget.address)
         etTotalPrice.setText(NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(budget.totalPrice))
 
-        // Adicionar itens dinamicamente
+        // Adicionar itens dinamicamente, sem foco inicial
         val minSize = minOf(budget.description.size, budget.unitPrice.size)
         for (i in 0 until minSize) {
             val description = budget.description.getOrNull(i) ?: ""
             val unitPrice = budget.unitPrice.getOrNull(i)?.toString() ?: ""
-            addDescriptionAndUnitPriceFields(description, unitPrice)
+            addDescriptionAndUnitPriceFields(description, unitPrice, focusOnNewItem = false)
+        }
+
+        // Garantir que o ScrollView comece no topo
+        val scrollView = findViewById<ScrollView>(R.id.scrollView)
+        scrollView.post {
+            scrollView.scrollTo(0, 0)
         }
 
         // Configurar o botão de adicionar
         btnAddDescription.setOnClickListener {
-            addDescriptionAndUnitPriceFields("", "")
+            addDescriptionAndUnitPriceFields("", "", focusOnNewItem = true)
         }
 
         // Configurar o botão de salvar
@@ -139,26 +149,7 @@ class EditBudgetActivity : AppCompatActivity() {
                 etName.error = "O nome é obrigatório"
                 return@setOnClickListener
             }
-            if (newPhone.isBlank()) {
-                etPhone.error = "O telefone é obrigatório"
-                return@setOnClickListener
-            }
-            if (newAddress.isBlank()) {
-                etAddress.error = "O endereço é obrigatório"
-                return@setOnClickListener
-            }
-            if (newDescription.isEmpty() || newDescription.any { it.isBlank() }) {
-                Toast.makeText(this, "Todos os campos de descrição são obrigatórios", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            if (newUnitPrice.isEmpty() || newUnitPrice.any { it == 0.0 }) {
-                Toast.makeText(this, "Todos os preços unitários devem ser válidos", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            if (newTotalPriceText.isBlank()) {
-                etTotalPrice.error = "O preço total é obrigatório"
-                return@setOnClickListener
-            }
+
             if (newTotalPrice == 0.0) {
                 etTotalPrice.error = "O preço total deve ser um valor válido"
                 return@setOnClickListener
@@ -488,7 +479,7 @@ class EditBudgetActivity : AppCompatActivity() {
     }
 
     // Função para adicionar campos de descrição e preço unitário
-    private fun addDescriptionAndUnitPriceFields(initialDescription: String, initialUnitPrice: String) {
+    private fun addDescriptionAndUnitPriceFields(initialDescription: String, initialUnitPrice: String, focusOnNewItem: Boolean = true) {
         // Container principal para o item (vertical)
         val container = LinearLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(
@@ -557,16 +548,20 @@ class EditBudgetActivity : AppCompatActivity() {
 
         // Botão de remoção
         val removeButton = Button(this).apply {
-            text = "X"
             layoutParams = LinearLayout.LayoutParams(
-                0,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                1f // Peso menor para ocupar menos espaço
+                40.dpToPx(), // Largura fixa para o ícone
+                40.dpToPx(), // Altura fixa para o ícone
+                0f // Peso 0, já que estamos usando tamanho fixo
             ).apply {
                 setMargins(8, 0, 0, 0) // Espaço à esquerda do botão
             }
-            setBackgroundTintList(ContextCompat.getColorStateList(this@EditBudgetActivity, android.R.color.darker_gray))
-            setTextColor(ContextCompat.getColor(this@EditBudgetActivity, android.R.color.white))
+            setBackgroundResource(R.drawable.ripple_effect) // Fundo com ripple
+            // Define o ícone usando setCompoundDrawablesWithIntrinsicBounds
+            val iconDrawable = ContextCompat.getDrawable(this@EditBudgetActivity, R.drawable.trash)
+            iconDrawable?.setColorFilter(ContextCompat.getColor(this@EditBudgetActivity, android.R.color.white), PorterDuff.Mode.SRC_IN)
+            setCompoundDrawablesWithIntrinsicBounds(iconDrawable, null, null, null) // Ícone à esquerda (ou central, já que não há texto)
+            contentDescription = "Remover item" // Para acessibilidade
+            setPadding(8.dpToPx(), 14.dpToPx(), 8.dpToPx(), 14.dpToPx()) // Padding interno para o ícone
             setOnClickListener {
                 try {
                     // Encontrar o índice correto usando as listas em vez de indexOfChild
@@ -608,6 +603,19 @@ class EditBudgetActivity : AppCompatActivity() {
         descriptionEditTexts.add(descriptionEditText)
         unitPriceEditTexts.add(unitPriceEditText)
         llItemsContainer.addView(container)
+
+        // Rolar para o novo item adicionado e focar apenas se focusOnNewItem for true
+        if (focusOnNewItem) {
+            llItemsContainer.post {
+                val scrollView = llItemsContainer.parent.parent as ScrollView
+                scrollView.smoothScrollTo(0, container.bottom)
+            }
+
+            // Focar no campo de descrição do novo item
+            descriptionEditText.requestFocus()
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(descriptionEditText, InputMethodManager.SHOW_IMPLICIT)
+        }
     }
 
     // Função para atualizar o valor total somando os unitPrices
@@ -632,5 +640,11 @@ class EditBudgetActivity : AppCompatActivity() {
         totalWatcher?.let { etTotalPrice.removeTextChangedListener(it) } // Remove listener temporariamente
         etTotalPrice.setText(moedaFormat.format(total))
         totalWatcher?.let { etTotalPrice.addTextChangedListener(it) } // Re-adiciona o listener
+    }
+
+    // Função auxiliar para converter dp para pixels
+    private fun Int.dpToPx(): Int {
+        val density = resources.displayMetrics.density
+        return (this * density).toInt()
     }
 }

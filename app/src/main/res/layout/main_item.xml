@@ -15,14 +15,24 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints">
 
-        <LinearLayout
 
+
+        <LinearLayout
             android:padding="20dp"
+            android:gravity="center"
             android:background="@drawable/btn_menu"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" >
 
+            <ImageView
+                android:id="@+id/item_img_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/new_budget" />
+
             <TextView
+                android:textSize="12sp"
+                android:layout_marginLeft="10dp"
                 android:id="@+id/item_text_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

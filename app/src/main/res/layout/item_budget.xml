@@ -65,7 +65,7 @@
             android:layout_height="wrap_content"
             android:text="Enviar PDF"
             android:textSize="12sp"
-            android:backgroundTint="@android:color/holo_blue_light"
+            android:backgroundTint="#FF0000"
             android:layout_marginEnd="8dp" />
 
         <!-- Botão para Editar Orçamento -->
@@ -76,7 +76,7 @@
             android:drawableLeft="@drawable/clipboard"
             android:text="Editar"
             android:textSize="12sp"
-            android:backgroundTint="@android:color/holo_green_light" />
+            android:backgroundTint="@color/blue_save" />
 
     </LinearLayout>
 

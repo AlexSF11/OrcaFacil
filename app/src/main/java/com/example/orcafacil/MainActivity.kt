@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -37,12 +38,14 @@ class MainActivity : AppCompatActivity() {
         mainItems.add(
             MainItem(
                 id = 1,
+                drawableId = R.drawable.new_budget,
                 textStringId = R.string.new_budget
             )
         )
         mainItems.add(
             MainItem(
                 id = 2,
+                drawableId = R.drawable.my_budgets,
                 textStringId = R.string.my_budgets
             )
         )
@@ -119,9 +122,11 @@ class MainActivity : AppCompatActivity() {
 
         private inner class MainViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             fun bind(item: MainItem) {
+                val img: ImageView = itemView.findViewById(R.id.item_img_icon)
                 val name: TextView = itemView.findViewById(R.id.item_text_name)
                 val container: LinearLayout = itemView.findViewById(R.id.item_container_new_budget)
 
+                img.setImageResource(item.drawableId)
                 name.setText(item.textStringId)
                 container.setOnClickListener {
                     onItemClickListener.invoke(item.id)

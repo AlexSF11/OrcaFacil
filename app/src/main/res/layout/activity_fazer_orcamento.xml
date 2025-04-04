@@ -1,87 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Informações do Cliente"
-            android:textColor="#222222"
-            android:textSize="23sp"
-            android:textStyle="bold" />
-
-        <!-- Campos de entrada -->
-        <EditText
-            android:id="@+id/et_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nome"
-            android:background="@android:drawable/edit_text"
-            android:padding="12dp"
-            android:layout_marginTop="8dp" />
-
-        <EditText
-            android:id="@+id/et_phone"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Telefone"
-            android:inputType="number"
-            android:background="@android:drawable/edit_text"
-            android:padding="12dp"
-            android:layout_marginTop="8dp" />
-
-        <EditText
-            android:id="@+id/et_address"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Endereço"
-            android:background="@android:drawable/edit_text"
-            android:padding="12dp"
-            android:layout_marginTop="8dp" />
-
-        <!-- Título Relatório Inicial -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="30dp"
-            android:layout_marginBottom="10dp"
-            android:text="Orçamento"
-            android:textColor="#222222"
-            android:textSize="23sp"
-            android:textStyle="bold" />
+    <!-- ScrollView para o conteúdo rolável -->
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/footerLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
-            android:id="@+id/layout_tarefas"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:orientation="vertical"
-            android:layout_marginBottom="16dp" />
+            android:padding="16dp">
 
+            <!-- Título Informações do Cliente -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Informações do Cliente"
+                android:textColor="#222222"
+                android:textSize="23sp"
+                android:textStyle="bold" />
+
+            <!-- Campos de entrada -->
+            <EditText
+                android:id="@+id/et_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@android:drawable/edit_text"
+                android:hint="Nome"
+                android:padding="12dp" />
+
+            <EditText
+                android:id="@+id/et_phone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@android:drawable/edit_text"
+                android:hint="Telefone"
+                android:inputType="number"
+                android:padding="12dp" />
+
+            <EditText
+                android:id="@+id/et_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@android:drawable/edit_text"
+                android:hint="Endereço"
+                android:padding="12dp" />
+
+            <!-- Título Relatório Inicial -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="10dp"
+                android:text="Orçamento"
+                android:textColor="#222222"
+                android:textSize="23sp"
+                android:textStyle="bold" />
+
+            <!-- Container para as tarefas dinâmicas -->
+            <LinearLayout
+                android:id="@+id/layout_tarefas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="vertical" />
+
+
+            <!-- Espaço extra para evitar que o conteúdo seja cortado pelo rodapé -->
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="100dp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Footer fixo com o Valor Total e o botão Salvar -->
+    <LinearLayout
+        android:id="@+id/footerLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:elevation="4dp"
+        android:orientation="vertical"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- Botão Adicionar Tarefa -->
         <Button
             android:id="@+id/btnAdicionarTarefa"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="#0d6efd"
-            android:text="Adicionar +"
-            android:textColor="@color/white" />
+            android:backgroundTint="@color/green_add"
+            android:drawableLeft="@drawable/add"
+            android:text="Adicionar Itens"
+            android:textColor="@color/white"
+            android:textSize="10sp" />
 
+        <!-- Campo Valor Total -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -94,13 +133,12 @@
             <EditText
                 android:id="@+id/et_valor_total"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:inputType="number"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
                 android:background="@android:drawable/edit_text"
-                android:padding="12dp"
-                android:layout_marginStart="8dp" />
-
+                android:inputType="number"
+                android:padding="12dp" />
         </LinearLayout>
 
         <!-- Botão Salvar -->
@@ -108,10 +146,12 @@
             android:id="@+id/btn_salvar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="#198754"
-            android:text="Salvar"
-            android:textColor="@color/white"
-            android:layout_marginTop="16dp" />
-
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/blue_save"
+            android:drawableLeft="@drawable/save"
+            android:padding="12dp"
+            android:text="Salvar Orçamento"
+            android:textColor="@color/white" />
     </LinearLayout>
-</ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
