@@ -60,9 +60,10 @@
         <!-- Botão para Imprimir PDF -->
         <Button
             android:id="@+id/btnPrintPdf"
+            android:drawableLeft="@drawable/pdf"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Imprimir PDF"
+            android:text="enviar PDF"
             android:textSize="12sp"
             android:backgroundTint="@android:color/holo_blue_light"
             android:layout_marginEnd="8dp" />
@@ -72,6 +73,7 @@
             android:id="@+id/btnDeleteBudget"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/trash"
             android:text="Remover"
             android:textSize="12sp"
             android:backgroundTint="@android:color/holo_red_light" />
