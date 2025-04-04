@@ -10,17 +10,13 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AlertDialog
-import androidx.cardview.widget.CardView
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
-import com.example.orcafacil.model.App
 import com.example.orcafacil.model.Budget
 import java.io.File
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
-import kotlin.concurrent.thread
 
 class BudgetAdapter(
     private val budgets: MutableList<Budget> // Alterado para MutableList para permitir remoção
@@ -31,7 +27,7 @@ class BudgetAdapter(
         val tvBudgetCreatedDate: TextView = itemView.findViewById(R.id.tvBudgetCreatedDate)
         val tvBudgetTotalPrice: TextView = itemView.findViewById(R.id.tvBudgetTotalPrice)
         val btnPrintPdf: Button = itemView.findViewById(R.id.btnPrintPdf)
-        val btnDeleteBudget: Button = itemView.findViewById(R.id.btnDeleteBudget)
+        val btnEditBudget: Button = itemView.findViewById(R.id.btnEditBudget) // Novo botão Editar
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -90,83 +86,8 @@ class BudgetAdapter(
             ).show()
         }
 
-        // Configurar o botão de Remover com confirmação
-        holder.btnDeleteBudget.setOnClickListener {
-            AlertDialog.Builder(holder.itemView.context)
-                .setTitle("Confirmar Remoção")
-                .setMessage("Tem certeza que deseja remover este orçamento?")
-                .setPositiveButton("Sim") { _, _ ->
-                    thread {
-                        try {
-                            val app = holder.itemView.context.applicationContext as App
-                            val dao = app.db.budgetDao()
-                            dao.delete(budget)
-
-                            // Remover o PDF associado, se existir
-                            budget.pdfPath?.let { path ->
-                                val pdfFile = File(path)
-                                if (pdfFile.exists()) {
-                                    pdfFile.delete()
-                                }
-                            }
-
-                            // Atualizar a lista na UI
-                            (holder.itemView.context as? MyBudgets)?.runOnUiThread {
-                                budgets.removeAt(position)
-                                notifyItemRemoved(position)
-                                notifyItemRangeChanged(position, budgets.size)
-
-                                // Atualizar visibilidade do tvEmpty e rvBudgets
-                                if (budgets.isEmpty()) {
-                                    (holder.itemView.context as MyBudgets).updateEmptyViewVisibility(true)
-                                }
-
-                                Toast.makeText(
-                                    holder.itemView.context,
-                                    "Orçamento removido com sucesso!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } ?: run {
-                                // Caso esteja na MainActivity, apenas atualizar a lista
-                                (holder.itemView.context as? MainActivity)?.runOnUiThread {
-                                    budgets.removeAt(position)
-                                    notifyItemRemoved(position)
-                                    notifyItemRangeChanged(position, budgets.size)
-
-                                    // Mostrar/esconder o RecyclerView com base nos dados
-                                    val rvRecentBudgets = (holder.itemView.context as MainActivity).findViewById<RecyclerView>(R.id.rvRecentBudgets)
-                                    rvRecentBudgets.visibility = if (budgets.isEmpty()) View.GONE else View.VISIBLE
-
-                                    Toast.makeText(
-                                        holder.itemView.context,
-                                        "Orçamento removido com sucesso!",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-                        } catch (e: Exception) {
-                            (holder.itemView.context as? MyBudgets)?.runOnUiThread {
-                                Toast.makeText(
-                                    holder.itemView.context,
-                                    "Erro ao remover o orçamento: ${e.message}",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            } ?: (holder.itemView.context as? MainActivity)?.runOnUiThread {
-                                Toast.makeText(
-                                    holder.itemView.context,
-                                    "Erro ao remover o orçamento: ${e.message}",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-                        }
-                    }
-                }
-                .setNegativeButton("Não", null)
-                .show()
-        }
-
-        // Adicionar listener de clique para abrir a tela de edição
-        holder.itemView.setOnClickListener {
+        // Configurar o botão de Editar
+        holder.btnEditBudget.setOnClickListener {
             val context = holder.itemView.context
             val intent = Intent(context, EditBudgetActivity::class.java)
             intent.putExtra("budget", budget)

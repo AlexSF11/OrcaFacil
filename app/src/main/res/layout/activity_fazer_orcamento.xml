@@ -16,8 +16,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="Informações do Cliente"
-            android:textColor="#000"
-            android:textSize="25dp"
+            android:textColor="#222222"
+            android:textSize="23sp"
             android:textStyle="bold" />
 
         <!-- Campos de entrada -->
@@ -57,8 +57,8 @@
             android:layout_marginTop="30dp"
             android:layout_marginBottom="10dp"
             android:text="Orçamento"
-            android:textColor="#000"
-            android:textSize="25dp"
+            android:textColor="#222222"
+            android:textSize="23sp"
             android:textStyle="bold" />
 
         <LinearLayout

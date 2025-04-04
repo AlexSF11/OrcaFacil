@@ -2,7 +2,7 @@
     android:shape="rectangle">
 
     <!-- Cor de fundo do layout -->
-    <solid android:color="@color/black" />
+    <solid android:color="#FF3700B3" />
 
     <!-- Bordas arredondadas -->
     <corners android:radius="16dp" />
@@ -10,6 +10,6 @@
     <!-- Borda com cor e espessura -->
     <stroke
         android:width="2dp"
-        android:color="@color/black" />
+        android:color="#FF3700B3" />
 
 </shape>

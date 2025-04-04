@@ -63,20 +63,20 @@
             android:drawableLeft="@drawable/pdf"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="enviar PDF"
+            android:text="Enviar PDF"
             android:textSize="12sp"
             android:backgroundTint="@android:color/holo_blue_light"
             android:layout_marginEnd="8dp" />
 
-        <!-- Botão para Remover Orçamento -->
+        <!-- Botão para Editar Orçamento -->
         <Button
-            android:id="@+id/btnDeleteBudget"
+            android:id="@+id/btnEditBudget"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/trash"
-            android:text="Remover"
+            android:drawableLeft="@drawable/clipboard"
+            android:text="Editar"
             android:textSize="12sp"
-            android:backgroundTint="@android:color/holo_red_light" />
+            android:backgroundTint="@android:color/holo_green_light" />
 
     </LinearLayout>
 

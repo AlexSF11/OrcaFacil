@@ -16,8 +16,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="Informações do Cliente"
-            android:textColor="#000"
-            android:textSize="25dp"
+            android:textColor="#222222"
+            android:textSize="23sp"
             android:textStyle="bold" />
 
         <!-- Campos de entrada -->
@@ -103,15 +103,36 @@
                 android:layout_marginStart="8dp" />
         </LinearLayout>
 
-        <!-- Botão Salvar -->
-        <Button
-            android:id="@+id/btnSave"
+        <!-- Container para os botões Salvar e Remover -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="#198754"
-            android:text="Salvar"
-            android:textColor="@color/white"
-            android:layout_marginTop="16dp" />
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="center">
+
+            <!-- Botão Salvar -->
+            <Button
+                android:id="@+id/btnSave"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="#198754"
+                android:text="Salvar"
+                android:textColor="@color/white"
+                android:layout_marginEnd="8dp" />
+
+            <!-- Botão Remover -->
+            <Button
+                android:id="@+id/btnDeleteBudget"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@android:color/holo_red_light"
+                android:text="Remover"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

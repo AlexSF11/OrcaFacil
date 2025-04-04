@@ -25,7 +25,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -48,6 +48,7 @@ class EditBudgetActivity : AppCompatActivity() {
     private lateinit var llItemsContainer: LinearLayout
     private lateinit var etTotalPrice: EditText
     private lateinit var btnSave: Button
+    private lateinit var btnDeleteBudget: Button // Novo botão Remover
     private lateinit var btnAddDescription: Button
 
     private val descriptionEditTexts = mutableListOf<EditText>()
@@ -64,6 +65,7 @@ class EditBudgetActivity : AppCompatActivity() {
         llItemsContainer = findViewById(R.id.llItemsContainer)
         etTotalPrice = findViewById(R.id.etTotalPrice)
         btnSave = findViewById(R.id.btnSave)
+        btnDeleteBudget = findViewById(R.id.btnDeleteBudget) // Inicializar o botão Remover
         btnAddDescription = findViewById(R.id.btnAddDescription)
 
         // Aplicar máscara monetária ao etTotalPrice
@@ -216,6 +218,42 @@ class EditBudgetActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+
+        // Configurar o botão de remover
+        btnDeleteBudget.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Confirmar Remoção")
+                .setMessage("Tem certeza que deseja remover este orçamento?")
+                .setPositiveButton("Sim") { _, _ ->
+                    thread {
+                        try {
+                            val app = application as App
+                            val dao = app.db.budgetDao()
+                            dao.delete(budget)
+
+                            // Remover o PDF associado, se existir
+                            budget.pdfPath?.let { path ->
+                                val pdfFile = File(path)
+                                if (pdfFile.exists()) {
+                                    pdfFile.delete()
+                                }
+                            }
+
+                            runOnUiThread {
+                                Toast.makeText(this, "Orçamento removido com sucesso!", Toast.LENGTH_SHORT).show()
+                                setResult(RESULT_OK)
+                                finish()
+                            }
+                        } catch (e: Exception) {
+                            runOnUiThread {
+                                Toast.makeText(this, "Erro ao remover o orçamento: ${e.message}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                }
+                .setNegativeButton("Não", null)
+                .show()
         }
     }
 
