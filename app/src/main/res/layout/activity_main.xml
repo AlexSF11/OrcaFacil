@@ -4,16 +4,38 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_home"
-    android:gravity="center"
-    android:orientation="horizontal"
+    android:orientation="vertical"
+    android:padding="16dp"
     tools:context=".MainActivity">
 
+    <!-- RecyclerView para os botões "Fazer Orçamento" e "Meus Orçamentos" -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_main"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         tools:listitem="@layout/main_item"
-        tools:itemCount="5" />
+        tools:itemCount="2" />
+
+    <!-- Título para os últimos orçamentos -->
+    <TextView
+        android:id="@+id/tvRecentBudgetsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Últimos Orçamentos"
+        android:textColor="#222222"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp" />
+
+    <!-- RecyclerView para os últimos orçamentos -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvRecentBudgets"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        tools:listitem="@layout/item_budget"
+        tools:itemCount="4" />
 
 </LinearLayout>
