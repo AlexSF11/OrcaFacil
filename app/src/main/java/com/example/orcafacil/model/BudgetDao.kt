@@ -16,8 +16,11 @@ interface BudgetDao {
     fun getAllBudgets(): LiveData<List<Budget>>
 
     @Update
-    fun update(budget: Budget) // Novo método para atualizar um orçamento
+    fun update(budget: Budget)
 
     @Delete
-    fun delete(budget: Budget) // Método necessário para remoção
+    fun delete(budget: Budget)
+
+    @Query("SELECT * FROM Budget ORDER BY id DESC LIMIT 1")
+    fun getLastBudget(): Budget? // Novo método para buscar o último orçamento
 }

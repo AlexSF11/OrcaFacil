@@ -51,10 +51,28 @@ class FazerOrcamentoActivity : AppCompatActivity() {
     private lateinit var pdfFile: File
     private val listaTarefas = mutableListOf<EditText>()
     private val listaTarefasValores = mutableListOf<Pair<EditText, EditText>>()
+    private lateinit var numeroOrcamento: String // Variável para armazenar o número do orçamento
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fazer_orcamento)
+
+        // Obter o último número do orçamento do banco de dados
+        Thread {
+            val app = application as App
+            val dao = app.db.budgetDao()
+            val lastBudget = dao.getLastBudget()
+            runOnUiThread {
+                // Se não houver orçamentos, começar com "Nº1"
+                numeroOrcamento = if (lastBudget == null) {
+                    "Nº1"
+                } else {
+                    // Extrair o número do último orçamento e incrementar
+                    val lastNumber = lastBudget.numeroOrcamento.replace("Nº", "").toIntOrNull() ?: 0
+                    "Nº${lastNumber + 1}"
+                }
+            }
+        }.start()
 
         etName = findViewById(R.id.et_name)
         etPhone = findViewById(R.id.et_phone)
@@ -214,7 +232,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
             if (focusOnNewItem) {
                 layoutTarefas.post {
                     val scrollView = layoutTarefas.parent.parent as ScrollView
-                    scrollView.smoothScrollTo(0, novaTarefaLayout.bottom)
+                    scrollView.smoothScrollTo(0, novaTarefaLayout.bottom )
                 }
 
                 // Focar no campo de descrição do novo item
@@ -275,23 +293,24 @@ class FazerOrcamentoActivity : AppCompatActivity() {
                 pdfFile = File(filePath)
                 generatePDF(pdfFile)
 
-                // Criar o objeto Budget com o caminho do PDF
+                // Criar o objeto Budget com o caminho do PDF e o número do orçamento
                 val budget = Budget(
                     name = etName.text.toString(),
-                    address = etAddress.text.toString(),
                     phone = etPhone.text.toString(),
+                    address = etAddress.text.toString(),
                     description = descriptions,
                     unitPrice = unitPrices,
                     totalPrice = totalPrice,
-                    pdfPath = pdfFile.absolutePath // Salvar o caminho do PDF
+                    pdfPath = pdfFile.absolutePath,
+                    numeroOrcamento = numeroOrcamento // Salvar o número do orçamento
                 )
 
                 // Executar inserção no banco em uma thread separada
                 Thread {
                     val app = application as App
                     val dao = app.db.budgetDao()
-                    val budgetId = dao.insert(budget) // Inserir e obter o ID do orçamento
-                    Log.d("FazerOrcamento", "Orçamento salvo com ID: $budgetId")
+                    dao.insert(budget) // Inserir o orçamento
+                    Log.d("FazerOrcamento", "Orçamento salvo com número: $numeroOrcamento")
                 }.start()
 
                 Toast.makeText(this, "Orçamento salvo com sucesso!", Toast.LENGTH_LONG).show()
@@ -414,7 +433,6 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         }
 
         val dataAtual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
-        val numeroOrcamento = "Nº245"
 
         paint.isFakeBoldText = true
         val xRightAlign = pageInfo.pageWidth - 50f  // Margem direita

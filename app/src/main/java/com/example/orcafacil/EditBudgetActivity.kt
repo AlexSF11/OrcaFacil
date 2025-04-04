@@ -57,6 +57,7 @@ class EditBudgetActivity : AppCompatActivity() {
 
     private val descriptionEditTexts = mutableListOf<EditText>()
     private val unitPriceEditTexts = mutableListOf<EditText>()
+    private lateinit var budget: Budget // Armazenar o orçamento recebido
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,14 +77,12 @@ class EditBudgetActivity : AppCompatActivity() {
         aplicarMascaraMonetaria(etTotalPrice)
 
         // Receber o objeto Budget do Intent
-        val budget: Budget? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        budget = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra("budget", Budget::class.java)
         } else {
             @Suppress("DEPRECATION")
             intent.getParcelableExtra("budget")
-        }
-
-        if (budget == null) {
+        } ?: run {
             Toast.makeText(this, "Erro ao carregar o orçamento", Toast.LENGTH_SHORT).show()
             finish()
             return
@@ -164,7 +163,7 @@ class EditBudgetActivity : AppCompatActivity() {
                 getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath + "/Orcamento_${budget.id}.pdf"
             }
 
-            // Criar um novo objeto Budget com os dados atualizados, incluindo o pdfPath
+            // Criar um novo objeto Budget com os dados atualizados, incluindo o pdfPath e o numeroOrcamento
             val updatedBudget = Budget(
                 id = budget.id,
                 name = newName,
@@ -174,7 +173,8 @@ class EditBudgetActivity : AppCompatActivity() {
                 unitPrice = newUnitPrice,
                 totalPrice = newTotalPrice,
                 createdDate = budget.createdDate,
-                pdfPath = pdfPath // Manter ou atualizar o pdfPath
+                pdfPath = pdfPath, // Manter ou atualizar o pdfPath
+                numeroOrcamento = budget.numeroOrcamento // Preservar o numeroOrcamento original
             )
 
             // Atualizar o orçamento no banco de dados
@@ -343,11 +343,10 @@ class EditBudgetActivity : AppCompatActivity() {
             }
 
             val dataAtual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
-            val numeroOrcamento = "Nº245"
 
             paint.isFakeBoldText = true
             val xRightAlign = pageInfo.pageWidth - 50f  // Margem direita
-            val textWidthOrcamento = paint.measureText(numeroOrcamento)
+            val textWidthOrcamento = paint.measureText(budget.numeroOrcamento)
             val textWidthData = paint.measureText(dataAtual)
 
             // Linha Superior que fecha a parte de cima da tabela
@@ -358,7 +357,7 @@ class EditBudgetActivity : AppCompatActivity() {
 
             val yNome = yTitle + 50f  // Posição Y do "Nome"
             paint.color = Color.RED
-            canvas.drawText(numeroOrcamento, xRightAlign - textWidthOrcamento, yNome, paint)
+            canvas.drawText(budget.numeroOrcamento, xRightAlign - textWidthOrcamento, yNome, paint)
             paint.color = Color.BLACK
 
             paint.textSize = 14f
@@ -608,7 +607,7 @@ class EditBudgetActivity : AppCompatActivity() {
         if (focusOnNewItem) {
             llItemsContainer.post {
                 val scrollView = llItemsContainer.parent.parent as ScrollView
-                scrollView.smoothScrollTo(0, container.bottom + 10)
+                scrollView.smoothScrollTo(0, container.bottom )
             }
 
             // Focar no campo de descrição do novo item
