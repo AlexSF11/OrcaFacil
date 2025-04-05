@@ -1,4 +1,4 @@
-package com.example.orcafacil
+package com.example.orcafacilraf
 
 import android.app.Activity
 import android.content.Intent
@@ -11,8 +11,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.orcafacil.model.App
-import com.example.orcafacil.model.Budget
+import com.example.orcafacilraf.model.App
+import com.example.orcafacilraf.model.Budget
 
 class MyBudgets : AppCompatActivity() {
 

@@ -1,4 +1,4 @@
-package com.example.orcafacil.model
+package com.example.orcafacilraf.model
 
 import androidx.room.TypeConverter
 import java.util.*

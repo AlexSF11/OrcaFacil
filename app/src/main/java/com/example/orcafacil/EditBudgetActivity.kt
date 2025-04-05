@@ -1,4 +1,4 @@
-package com.example.orcafacil
+package com.example.orcafacilraf
 
 import android.content.Intent
 import android.graphics.Bitmap
@@ -30,8 +30,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import com.example.orcafacil.model.App
-import com.example.orcafacil.model.Budget
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -45,6 +43,8 @@ import android.content.Context
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.res.ResourcesCompat
+import com.example.orcafacilraf.model.App
+import com.example.orcafacilraf.model.Budget
 
 class EditBudgetActivity : AppCompatActivity() {
 

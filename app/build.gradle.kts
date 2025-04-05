@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.orcafacil"
+    namespace = "com.example.orcafacilraf"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.orcafacil"
+        applicationId = "com.example.orcafacilraf"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
