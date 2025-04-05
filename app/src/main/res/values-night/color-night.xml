@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="edittext_background">#E0E0E0</color> <!-- Fundo claro -->
+    <color name="edittext_text">#000000</color> <!-- Texto preto -->
+    <color name="edittext_hint">#888888</color>
+</resources>

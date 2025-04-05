@@ -43,6 +43,8 @@ import kotlin.concurrent.thread
 import android.graphics.PorterDuff
 import android.content.Context
 import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.res.ResourcesCompat
 
 class EditBudgetActivity : AppCompatActivity() {
 
@@ -62,6 +64,9 @@ class EditBudgetActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit_budget)
+
+        // Força o modo claro
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         // Inicializar os campos
         etName = findViewById(R.id.etName)
@@ -498,6 +503,8 @@ class EditBudgetActivity : AppCompatActivity() {
             setText(initialDescription)
             background = resources.getDrawable(android.R.drawable.edit_text, null)
             setPadding(12, 12, 12, 12)
+            setTextColor(ResourcesCompat.getColor(resources, R.color.edittext_text, theme))
+            setHintTextColor(ResourcesCompat.getColor(resources, R.color.edittext_hint, theme))
             hint = "Digite a descrição"
             filters = arrayOf(InputFilter.AllCaps()) // Adiciona filtro de caixa alta
             isSingleLine = false // Permite múltiplas linhas
@@ -533,6 +540,8 @@ class EditBudgetActivity : AppCompatActivity() {
             } else "")
             background = resources.getDrawable(android.R.drawable.edit_text, null)
             setPadding(12, 12, 12, 12)
+            setTextColor(ResourcesCompat.getColor(resources, R.color.edittext_text, theme))
+            setHintTextColor(ResourcesCompat.getColor(resources, R.color.edittext_hint, theme))
             inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
             hint = "Valor Unitário"
             aplicarMascaraMonetaria(this) // Aplica máscara monetária

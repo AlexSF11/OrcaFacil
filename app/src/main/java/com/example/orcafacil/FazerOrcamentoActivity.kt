@@ -40,6 +40,8 @@ import java.util.Locale
 import android.graphics.PorterDuff
 import android.content.Context
 import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.res.ResourcesCompat
 
 class FazerOrcamentoActivity : AppCompatActivity() {
     private lateinit var etName: EditText
@@ -56,6 +58,9 @@ class FazerOrcamentoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fazer_orcamento)
+
+        // Força o modo claro
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         // Obter o último número do orçamento do banco de dados
         Thread {
@@ -139,6 +144,8 @@ class FazerOrcamentoActivity : AppCompatActivity() {
                 )
                 background = resources.getDrawable(android.R.drawable.edit_text, null)
                 setPadding(12, 12, 12, 12)
+                setTextColor(ResourcesCompat.getColor(resources, R.color.edittext_text, theme))
+                setHintTextColor(ResourcesCompat.getColor(resources, R.color.edittext_hint, theme))
                 filters = arrayOf(InputFilter.AllCaps())
                 isSingleLine = false // Permite múltiplas linhas
                 minLines = 1 // Garante que o campo tenha pelo menos 1 linha
@@ -167,6 +174,8 @@ class FazerOrcamentoActivity : AppCompatActivity() {
                 )
                 background = resources.getDrawable(android.R.drawable.edit_text, null)
                 setPadding(12, 12, 12, 12)
+                setTextColor(ResourcesCompat.getColor(resources, R.color.edittext_text, theme))
+                setHintTextColor(ResourcesCompat.getColor(resources, R.color.edittext_hint, theme))
                 aplicarMascaraMonetaria(this)
             }
 

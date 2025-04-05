@@ -76,7 +76,7 @@
             android:id="@+id/btnEditBudget"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/clipboard"
+            android:drawableLeft="@drawable/edit"
             android:text="Editar"
             android:textSize="12sp"
             android:backgroundTint="@color/blue_save" />

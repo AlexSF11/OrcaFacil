@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:background="@color/white"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/white">
 
     <!-- ScrollView para o conteúdo rolável -->
     <ScrollView
@@ -41,7 +41,9 @@
                 android:layout_marginTop="8dp"
                 android:background="@android:drawable/edit_text"
                 android:hint="Nome"
-                android:padding="12dp" />
+                android:padding="12dp"
+                android:textColor="@color/edittext_text"
+                android:textColorHint="@color/edittext_hint" />
 
             <EditText
                 android:id="@+id/et_phone"
@@ -51,7 +53,9 @@
                 android:background="@android:drawable/edit_text"
                 android:hint="Telefone"
                 android:inputType="number"
-                android:padding="12dp" />
+                android:padding="12dp"
+                android:textColor="@color/edittext_text"
+                android:textColorHint="@color/edittext_hint" />
 
             <EditText
                 android:id="@+id/et_address"
@@ -60,7 +64,9 @@
                 android:layout_marginTop="8dp"
                 android:background="@android:drawable/edit_text"
                 android:hint="Endereço"
-                android:padding="12dp" />
+                android:padding="12dp"
+                android:textColor="@color/edittext_text"
+                android:textColorHint="@color/edittext_hint" />
 
             <!-- Título Relatório Inicial -->
             <TextView
@@ -137,9 +143,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
+                android:hint="R$ 0,00"
                 android:background="@android:drawable/edit_text"
                 android:inputType="number"
-                android:padding="12dp" />
+                android:padding="12dp"
+                android:textColor="@color/edittext_text"
+                android:textColorHint="@color/edittext_hint" />
         </LinearLayout>
 
         <!-- Botão Salvar -->
