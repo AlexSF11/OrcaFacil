@@ -154,11 +154,6 @@ class EditBudgetActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            if (newTotalPrice == 0.0) {
-                etTotalPrice.error = "O preço total deve ser um valor válido"
-                return@setOnClickListener
-            }
-
             // Determinar o caminho do PDF
             val pdfPath = if (budget.pdfPath != null && File(budget.pdfPath).exists()) {
                 // Se já existe um pdfPath e o arquivo existe, usar o mesmo caminho para sobrescrever
@@ -264,7 +259,7 @@ class EditBudgetActivity : AppCompatActivity() {
         try {
             // Tentar carregar e desenhar o logotipo
             try {
-                val bitmap = BitmapFactory.decodeResource(resources, R.drawable.drc_logo)
+                val bitmap = BitmapFactory.decodeResource(resources, R.drawable.raf_logo)
                 if (bitmap == null) {
                     Log.e("DEBUG_PDF", "Logotipo não encontrado: R.drawable.drc_logo")
                 } else {
@@ -409,12 +404,12 @@ class EditBudgetActivity : AppCompatActivity() {
 
             // Linha de Assinatura
             canvas.drawLine(50f, yText + 47f, tableRightX, yText + 47f, paint)
-            canvas.drawText("DRC:", startX, footerStartY + 45f, paint)
+            canvas.drawText("KAIQUE:", startX, footerStartY + 45f, paint)
 
             paint.color = Color.BLUE
             canvas.drawText("Rua Queiroz, 15 - Mata Fria", startX, footerStartY + 65f, paint)
-            canvas.drawText("Telefone: 96218-7332", startX, footerStartY + 80f, paint)
-            canvas.drawText("E-mail: naufreire13@gmail.com", startX, footerStartY + 95f, paint)
+            canvas.drawText("Telefone: (11)97988-2751", startX, footerStartY + 80f, paint)
+            canvas.drawText("E-mail: kaiquefreire9536@gmail.com", startX, footerStartY + 95f, paint)
 
             pdfDocument.finishPage(page)
 

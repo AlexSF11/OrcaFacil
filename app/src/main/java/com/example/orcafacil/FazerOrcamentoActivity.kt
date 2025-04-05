@@ -361,7 +361,7 @@ class FazerOrcamentoActivity : AppCompatActivity() {
         val canvas: Canvas = page.canvas
 
         try {
-            val bitmap = BitmapFactory.decodeResource(resources, R.drawable.drc_logo)
+            val bitmap = BitmapFactory.decodeResource(resources, R.drawable.raf_logo)
             val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 500, 100, false)
             canvas.drawBitmap(scaledBitmap, (pageInfo.pageWidth - 500) / 2f, 20f, paint)
         } catch (e: Exception) {
@@ -500,12 +500,12 @@ class FazerOrcamentoActivity : AppCompatActivity() {
 
         // Linha de Assinatura
         canvas.drawLine(50f, yText + 47f, tableRightX, yText + 47f, paint)
-        canvas.drawText("DRC:", startX, footerStartY + 45f, paint)
+        canvas.drawText("KAIQUE:", startX, footerStartY + 45f, paint)
 
         paint.color = Color.BLUE
         canvas.drawText("Rua Queiroz, 15 - Mata Fria", startX, footerStartY + 65f, paint)
-        canvas.drawText("Telefone: 96218-7332", startX, footerStartY + 80f, paint)
-        canvas.drawText("E-mail: naufreire13@gmail.com", startX, footerStartY + 95f, paint)
+        canvas.drawText("Telefone: (11)97988-2751", startX, footerStartY + 80f, paint)
+        canvas.drawText("E-mail: kaiquefreire9536@gmail.com", startX, footerStartY + 95f, paint)
 
         pdfDocument.finishPage(page)
 
